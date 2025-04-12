@@ -17,6 +17,22 @@ using Pkg
 Pkg.add("SpaceDataModel")
 ```
 
+## Usage
+
+```julia
+using SpaceDataModel
+
+# Create a project
+project = Project(; name="Project Name")
+instrument = Instrument(; name="Instrument Name")
+dataset = DataSet(name="Dataset Name")
+
+push!(project, instrument, dataset)
+push!(instrument, dataset)
+```
+
+See [Data Model and Project Module - SPEDAS.jl](https://beforerr.github.io/SPEDAS.jl/dev/explanations/data_model/) for more details.
+
 ## Features
 
 - Hierarchical organization of data (projects, instruments, datasets)
