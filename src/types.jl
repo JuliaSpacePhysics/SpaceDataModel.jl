@@ -2,6 +2,7 @@ abstract type AbstractModel end
 abstract type AbstractProject <: AbstractModel end
 abstract type AbstractInstrument <: AbstractModel end
 abstract type AbstractProduct <: AbstractModel end
+abstract type AbstractDataSet <: AbstractProduct end
 
 """
     Project <: AbstractProject
@@ -48,7 +49,10 @@ name(m::AbstractModel) = m.name
 _repr(m::AbstractModel) = name(m)
 _repr(m) = m
 
-# Custom display methods for Project type
+Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
+Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)
+Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
+
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, T, "(", _repr(p), ")")
 
 function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}

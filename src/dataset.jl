@@ -1,5 +1,3 @@
-abstract type AbstractDataSet <: AbstractProduct end
-
 """
     DataSet <: AbstractDataSet
 

@@ -2,6 +2,7 @@ module SpaceDataModel
 using Accessors: @set
 using Unitful: unit
 import Base: size, ∘
+import Base: push!, insert!
 
 export AbstractModel, AbstractProject, AbstractInstrument, AbstractProduct, AbstractDataSet
 export AbstractDataVariable
