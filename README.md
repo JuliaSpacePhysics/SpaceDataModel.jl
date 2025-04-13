@@ -1,6 +1,7 @@
 # SpaceDataModel
 
 [![Build Status](https://github.com/Beforerr/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Beforerr/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![DOI](https://zenodo.org/badge/958430775.svg)](https://doi.org/10.5281/zenodo.15207556)
 
 ## Overview
 
