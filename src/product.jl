@@ -20,15 +20,11 @@ func(p::Product) = p.transformation
 (p::AbstractProduct)(args...; kwargs...) = func(p)(data(p), args...; kwargs...)
 
 """Create a new product with the composed function"""
-function ∘(f, p::AbstractProduct)
-    typeof(p)(p.name, f ∘ func(p), data(p), p.metadata)
-end
+∘(f, p::AbstractProduct) = @set p.transformation = f ∘ func(p)
+∘(p::AbstractProduct, f) = @set p.transformation = func(p) ∘ f
 
 # Allow chaining of transformations with multiple products
-function ∘(g::AbstractProduct, f::AbstractProduct)
-    # Create a new product that applies both functions
-    typeof(g)(g.name, g.transformation ∘ f.transformation, g.data, g.metadata)
-end
+∘(g::AbstractProduct, f::AbstractProduct) = @set g.transformation = func(g) ∘ func(f)
 
 function set(ds::Product, args...; name=nothing, data=nothing, kwargs...)
     !isnothing(name) && (ds = @set ds.name = name)
@@ -42,4 +38,10 @@ function set!!(ds::Product, args...; name=nothing, data=nothing, kwargs...)
     !isnothing(data) && (ds = @set ds.data = data)
     set!(ds.metadata, args...; kwargs...)
     ds
+end
+
+function Base.show(io::IO, p::Product)
+    n = name(p)
+    isempty(n) ? print(io, data(p)) : print(io, n)
+    func(p) !== identity && print(io, " [", func(p), "]")
 end

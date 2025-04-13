@@ -53,19 +53,21 @@ Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
 Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)
 Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
 
-Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, T, "(", _repr(p), ")")
+Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
 
 function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
-    print(io, T, ": ")
-    printstyled(io, _repr(p), color=:yellow)
+    printstyled(io, T, ": "; bold=true)
+    printstyled(io, name(p), color=:yellow)
     println(io)
 
     for field in setdiff(fieldnames(T), (:name, :format))
         ff = getfield(p, field)
         if ff isa Dict || ff isa Vector || ff isa Tuple
-            println(io, titlecase("  $field ($(length(ff))):"))
+            print(io, titlecase("  $field"))
+            println(io, " (", typeof(ff), "):")
             for (k, v) in pairs(ff)
-                println(io, "    ", k, ": ", _repr(v))
+                print(io, "    ", k, ": ")
+                println(io, v)
             end
         else
             print(io, titlecase("  $field"), ": ")
