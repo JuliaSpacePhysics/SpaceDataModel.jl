@@ -1,6 +1,6 @@
 struct Product <: AbstractProduct
     data::Any
-    transformation::Function
+    transformation::Any
     name::Union{String,Symbol}
     metadata::Any
     function Product(data, transformation, name="", metadata=Dict(); kwargs...)
