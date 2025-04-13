@@ -6,7 +6,7 @@
 
 SpaceDataModel.jl is a lightweight Julia package providing a flexible data model for handling space/heliospheric science data. It offers abstractions for organizing space data into hierarchical structures including projects, instruments, datasets, and data variables.
 
-It is used in [SPEDAS.jl](https://github.com/Beforerr/SPEDAS.jl) and [Speasy.jl](https://github.com/SciQLop/Speasy.jl).
+It is used in [SPEDAS.jl](https://github.com/Beforerr/SPEDAS.jl), [Speasy.jl](https://github.com/SciQLop/Speasy.jl), and [HAPIClient.jl](https://github.com/Beforerr/HAPIClient.jl).
 
 ## Installation
 
