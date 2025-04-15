@@ -7,6 +7,11 @@ using Test
     # Write your tests here.
 end
 
+@testitem "Aqua" begin
+    using Aqua
+    Aqua.test_all(SpaceDataModel)
+end
+
 @testitem "Project" begin
     project = Project(name="Project Name")
     instrument = Instrument(name="Instrument Name")
