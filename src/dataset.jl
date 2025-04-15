@@ -3,9 +3,9 @@
 
 A concrete dataset with a name, data (parameters), and metadata.
 """
-@kwdef struct DataSet <: AbstractDataSet
+@kwdef struct DataSet{T<:Union{Vector,Dict,NamedTuple}} <: AbstractDataSet
     name::String = ""
-    data::Union{Vector,Dict,NamedTuple} = Dict()
+    data::T = Dict()
     metadata::Dict = Dict()
 end
 
@@ -74,8 +74,10 @@ function DataSet(ld::LDataSet; kwargs...)
     )
 end
 
+Base.keys(ds::AbstractDataSet) = keys(ds.data)
 Base.length(ds::AbstractDataSet) = length(ds.data)
 Base.getindex(ds::AbstractDataSet, i) = ds.data[i]
+Base.getindex(ds::DataSet{<:Dict}, i::Integer) = ds[collect(keys(ds))[i]]
 Base.iterate(ds::AbstractDataSet, state=1) = state > length(ds) ? nothing : (ds.data[state], state + 1)
 Base.map(f, ds::AbstractDataSet) = map(f, ds.data)
 
