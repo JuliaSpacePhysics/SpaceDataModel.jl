@@ -1,6 +1,5 @@
 module SpaceDataModel
 using Accessors: @set
-using Unitful: unit
 import Base: size, ∘
 import Base: push!, insert!
 
@@ -11,6 +10,7 @@ export abbr
 
 name(v) = v.name
 meta(v) = v.meta
+units(v) = nothing
 
 include("utils.jl")
 include("types.jl")
