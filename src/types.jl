@@ -1,3 +1,5 @@
+# https://github.com/JuliaGeo/CommonDataModel.jl/blob/main/src/types.jl
+
 abstract type AbstractModel end
 abstract type AbstractProject <: AbstractModel end
 abstract type AbstractInstrument <: AbstractModel end
