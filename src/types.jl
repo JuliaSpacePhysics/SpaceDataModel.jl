@@ -78,8 +78,3 @@ function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
     end
 end
 
-Docs.getdoc(t::AbstractModel) = Markdown.parse("""
-```julia
-$(repr("text/plain", t))
-```
-""")
