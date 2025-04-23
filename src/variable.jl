@@ -5,7 +5,7 @@ A variable `v` of a type derived from `AbstractDataVariable` should at least imp
 
 Optional:
 
-* `time(v)`: the timestamps of the variable
+* `times(v)`: the timestamps of the variable
 * `units(v)`: the units of the variable
 * `meta(v)`: the metadata of the variable
 """
@@ -17,13 +17,15 @@ for f in (:getindex,)
     @eval Base.$f(var::AbstractDataVariable, I::Vararg{Int}) = $f(parent(var), I...)
 end
 
-time(v) = v.time
+times(v) = v.times
+tmin(v) = minimum(times(v))
+tmax(v) = maximum(times(v))
 
 function Base.show(io::IO, var::T) where {T<:AbstractDataVariable}
     ismissing(var) && return
     print_name(io, var)
     print(io, " [")
-    print(io, "Time Range: ", time(var)[1], " to ", time(var)[end])
+    print(io, "Time Range: ", tmin(var), " to ", tmax(var))
     u = units(var)
     isnothing(u) || print(io, ", Units: ", u)
     print(io, ", Size: ", size(var))
@@ -36,7 +38,7 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T<:AbstractDataVa
     print(io, "$T: ")
     print_name(io, var)
     println(io)
-    println(io, "  Time Range: ", time(var)[1], " to ", time(var)[end])
+    println(io, "  Time Range: ", tmin(var), " to ", tmax(var))
     u = units(var)
     isnothing(u) || println(io, "  Units: ", u)
     println(io, "  Size: ", size(var))
