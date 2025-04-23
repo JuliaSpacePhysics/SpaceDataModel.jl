@@ -4,7 +4,7 @@
 Get the abbreviation (abbr) of a project.
 """
 function abbr(p::Project; lowercase=true)
-    ab = p.metadata["abbreviation"]
+    ab = get(p.metadata, "abbreviation", name(p))
     return lowercase ? Base.lowercase(ab) : ab
 end
 
