@@ -11,6 +11,8 @@ Optional:
 """
 abstract type AbstractDataVariable{T,N} <: AbstractArray{T,N} end
 
+# https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array
+Base.parent(var::AbstractDataVariable) = var.data
 Base.size(var::AbstractDataVariable) = size(parent(var))
 Base.iterate(A::AbstractDataVariable, args...) = iterate(parent(A), args...)
 for f in (:getindex,)
