@@ -23,10 +23,6 @@ for f in (:getindex,)
     @eval Base.$f(var::AbstractDataVariable, I::Vararg{Int}) = $f(parent(var), I...)
 end
 
-function times(v::T) where T
-    hasfield(T, :times) ? getfield(v, :times) : nothing
-end
-
 tmin(v) = minimum(times(v))
 tmax(v) = maximum(times(v))
 

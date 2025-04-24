@@ -9,9 +9,11 @@ export Project, Instrument, DataSet, LDataSet, Product
 export Event
 export abbr
 
-name(v) = v.name
-meta(v) = v.meta
+# Interface
+name(v) = _getfield(v, :name)
+meta(v) = _getfield(v, (:meta, :metadata))
 units(v) = nothing
+times(v) = _getfield(v, (:times, :time))
 
 include("utils.jl")
 include("types.jl")

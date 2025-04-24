@@ -1,3 +1,6 @@
+_getfield(v::T, name::Symbol, d=nothing) where T = hasfield(T, name) ? getfield(v, name) : d
+_getfield(v, names, d=nothing) = something(_getfield.(Ref(v), names)..., d) # no runtime cost
+
 symbolify(d::Dict) = Dict{Symbol,Any}(Symbol(k) => v for (k, v) in d)
 
 function format_pattern(pattern; kwargs...)
