@@ -25,7 +25,10 @@ mutable struct Project <: AbstractProject
 end
 
 "keyword-based constructor"
-Project(; name="", instruments=Dict(), datasets=Dict(), metadata=Dict(), kwargs...) = Project(name, merge(metadata, Dict(kwargs)), instruments, datasets)
+function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=Dict(), kwargs...)
+    _meta = compat_dict(String, metadata, kwargs)
+    Project(name, _meta, instruments, datasets)
+end
 
 """
     Instrument <: AbstractInstrument
@@ -54,6 +57,7 @@ _repr(m) = m
 Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
 Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)
 Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
+Base.get(var::AbstractModel, s, d=nothing) = get(meta(var), s, d)
 
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
 
@@ -77,4 +81,3 @@ function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
         end
     end
 end
-

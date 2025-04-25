@@ -1,6 +1,16 @@
 _getfield(v::T, name::Symbol, d=nothing) where T = hasfield(T, name) ? getfield(v, name) : d
 _getfield(v, names, d=nothing) = something(_getfield.(Ref(v), names)..., d) # no runtime cost
 
+function _insert!(d::AbstractDict{K}, kw) where K
+    for (k, v) in kw
+        d[K(k)] = v
+    end
+    return d
+end
+
+compat_dict(K, m) = _insert!(Dict{K,Any}(), m)
+compat_dict(K, m, kw) = _insert!(compat_dict(K, m), kw)
+
 symbolify(d::Dict) = Dict{Symbol,Any}(Symbol(k) => v for (k, v) in d)
 
 function format_pattern(pattern; kwargs...)

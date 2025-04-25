@@ -13,7 +13,8 @@ end
 end
 
 @testitem "Project" begin
-    project = Project(name="Project Name")
+    using SpaceDataModel: meta, abbr
+    project = Project(name="Project Name", abbreviation="Proj", links="links")
     instrument = Instrument(name="Instrument Name")
     dataset = DataSet(name="Dataset Name")
     push!(project, instrument, dataset)
@@ -21,6 +22,7 @@ end
     @test length(project.instruments) == 1
     @test length(project.datasets) == 1
     @test length(instrument.datasets) == 1
+    @test abbr(project) == "Proj"
 end
 
 @testitem "DataSet" begin
