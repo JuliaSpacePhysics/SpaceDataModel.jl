@@ -23,6 +23,9 @@ for f in (:getindex,)
     @eval Base.$f(var::AbstractDataVariable, I::Vararg{Int}) = $f(parent(var), I...)
 end
 
+Base.get(var::AbstractDataVariable, s::Union{String,Symbol}, d=nothing) = get(meta(var), s, d)
+Base.get(f::Function, var::AbstractDataVariable, s::Union{String,Symbol}) = get(f, meta(var), s)
+
 tmin(v) = minimum(times(v))
 tmax(v) = maximum(times(v))
 
@@ -53,9 +56,6 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T<:AbstractDataVa
     println(io, "  Size: ", size(var))
     println(io, "  Memory Usage: ", Base.format_bytes(Base.summarysize(var)))
     if (m = meta(var)) !== nothing
-        println(io, "  Metadata:")
-        for (key, value) in sort(collect(m), by=x -> x[1])
-            println(io, "    ", key, ": ", value)
-        end
+        show_field(io, "Metadata", m)
     end
 end
