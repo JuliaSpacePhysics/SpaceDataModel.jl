@@ -1,27 +1,11 @@
 using Dates
 
-"""Parse a date in Day of Year format (YYYY-DDD)"""
-function tryparse_doy_date(str)
-    doy_regex = r"^(\d{4})-(\d{3})$"
-    m = match(doy_regex, str)
-    if !isnothing(m)
-        year = parse(Int, m[1])
-        doy = parse(Int, m[2])
-        return Date(year) + Day(doy - 1)
-    end
-    return nothing
-end
+"""Check if a string is in Day of Year format (YYYY-DDD)."""
+is_doy(str) = occursin(r"^(\d{4})-(\d{3})", str)
 
-function tryparse_datetime(str)
-    # Check if the string ends with Z and remove it for parsing
-    str = rstrip(str, 'Z')
-    # Split into date and time parts if T is present
-    parts = split(str, "T", limit=2)
-    date_part = parts[1]
-    # Parse date part
-    date = @something(
-        tryparse(Date, date_part),
-        tryparse_doy_date(date_part)
-    )
-    length(parts) > 1 ? date + Time(parts[2]) : DateTime(date)
-end
+parse_doy_date(str, i=5) = @views Date(str[1:i-1]) + Day(str[i+1:i+3]) - Day(1)
+parse_doy_datetime(str) = @views parse_doy_date(str) + Time(str[10:end])
+_parse_date(str) = is_doy(str) ? parse_doy_date(str) : Date(str)
+_parse_datetime(str) = is_doy(str) ? parse_doy_datetime(str) : DateTime(str)
+
+parse_datetime(str)::DateTime = 'T' ∉ str ? _parse_date(str) : _parse_datetime(str)
