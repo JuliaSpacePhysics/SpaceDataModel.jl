@@ -1,7 +1,20 @@
-_getfield(v::T, name::Symbol, d=nothing) where T = hasfield(T, name) ? getfield(v, name) : d
+"""
+    @get(collection, key, default)
+
+Short-circuiting version of [`get`](@ref). See also [`@something`](@ref).
+"""
+macro get(collection, key, default)
+    val = gensym()
+    quote
+        $val = get($(esc(collection)), $(esc(key)), nothing)
+        !isnothing($val) ? $val : $(esc(default))
+    end
+end
+
+_getfield(v::T, name::Symbol, d=nothing) where {T} = hasfield(T, name) ? getfield(v, name) : d
 _getfield(v, names, d=nothing) = something(_getfield.(Ref(v), names)..., d) # no runtime cost
 
-function _insert!(d::AbstractDict{K}, kw) where K
+function _insert!(d::AbstractDict{K}, kw) where {K}
     for (k, v) in kw
         d[K(k)] = v
     end

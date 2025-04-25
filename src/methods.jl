@@ -4,7 +4,7 @@
 Get the abbreviation (abbr) of a project.
 """
 function abbr(p::Project; lowercase=false)
-    ab = @something get(p, "abbreviation") name(p)
+    ab = @get(p, "abbreviation", name(p))
     return lowercase ? Base.lowercase(ab) : ab
 end
 

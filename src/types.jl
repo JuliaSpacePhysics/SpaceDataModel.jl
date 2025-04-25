@@ -58,6 +58,7 @@ Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
 Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)
 Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
 Base.get(var::AbstractModel, s, d=nothing) = get(meta(var), s, d)
+Base.get(f::Function, var::AbstractModel, s) = get(f, meta(var), s)
 
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
 
