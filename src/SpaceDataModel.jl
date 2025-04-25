@@ -12,7 +12,7 @@ export abbr
 # Interface
 name(v) = _getfield(v, :name)
 meta(v) = _getfield(v, (:meta, :metadata))
-units(v) = nothing
+units(v) = @get(v, "units", nothing)
 times(v) = _getfield(v, (:times, :time))
 
 include("utils.jl")

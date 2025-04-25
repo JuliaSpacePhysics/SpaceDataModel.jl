@@ -50,10 +50,6 @@ Instrument(; name="", metadata=Dict(), datasets=Dict(), kwargs...) = Instrument(
 "Construct an `Instrument` from a dictionary."
 Instrument(d::Dict) = Instrument(; symbolify(d)...)
 
-name(m::AbstractModel) = m.name
-_repr(m::AbstractModel) = name(m)
-_repr(m) = m
-
 Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
 Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)
 Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
@@ -62,6 +58,18 @@ Base.get(f::Function, var::AbstractModel, s) = get(f, meta(var), s)
 
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
 
+function show_field(io::IO, field, value::T, prefix="  ") where {T<:Union{Dict,Vector,Tuple}}
+    println(io, prefix, titlecase(String(field)), " (", T, "):")
+    for (k, v) in pairs(value)
+        println(io, prefix, "  ", k, ": ", v)
+    end
+end
+
+function show_field(io::IO, field, value)
+    print(io, titlecase("  $field"), ": ")
+    println(io, value)
+end
+
 function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
     printstyled(io, T, ": "; bold=true)
     printstyled(io, name(p), color=:yellow)
@@ -69,16 +77,6 @@ function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
 
     for field in setdiff(fieldnames(T), (:name, :format))
         ff = getfield(p, field)
-        if ff isa Dict || ff isa Vector || ff isa Tuple
-            print(io, titlecase("  $field"))
-            println(io, " (", typeof(ff), "):")
-            for (k, v) in pairs(ff)
-                print(io, "    ", k, ": ")
-                println(io, v)
-            end
-        else
-            print(io, titlecase("  $field"), ": ")
-            println(io, ff)
-        end
+        isempty(ff) || show_field(io, field, ff)
     end
 end

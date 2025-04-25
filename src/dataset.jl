@@ -80,5 +80,3 @@ Base.getindex(ds::AbstractDataSet, i) = ds.data[i]
 Base.getindex(ds::DataSet{<:Dict}, i::Integer) = ds[collect(keys(ds))[i]]
 Base.iterate(ds::AbstractDataSet, state=1) = state > length(ds) ? nothing : (ds.data[state], state + 1)
 Base.map(f, ds::AbstractDataSet) = map(f, ds.data)
-
-_repr(ld::LDataSet) = isempty(ld.name) ? ld.format : ld.name
