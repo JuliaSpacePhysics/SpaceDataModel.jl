@@ -1,12 +1,9 @@
 """
-    abbr(p::Project; lowercase = true)
+    abbr(p)
 
-Get the abbreviation (abbr) of a project.
+Get the abbreviation (abbr) of `p`.
 """
-function abbr(p::Project; lowercase=false)
-    ab = @get(p, "abbreviation", name(p))
-    return lowercase ? Base.lowercase(ab) : ab
-end
+abbr(p) = @get(p, "abbreviation", name(p))
 
 struct Extended{F,T} <: Function
     f::F
