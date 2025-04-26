@@ -22,7 +22,7 @@ include("timerange.jl")
 include("workload.jl")
 
 # Interface
-name(v) = _getfield(v, :name)
+name(v) = @getfield(v, :name, get(v, "name", ""))
 meta(v) = _getfield(v, (:meta, :metadata))
 units(v) = @get(v, "units", nothing)
 times(v) = _getfield(v, (:times, :time))

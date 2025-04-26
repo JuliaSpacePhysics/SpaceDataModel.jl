@@ -3,7 +3,7 @@
 
 Short-circuiting version of [`get`](@ref). See also [`@something`](@ref).
 """
-macro get(collection, key, default)
+macro get(collection, key, default=nothing)
     val = gensym()
     quote
         $val = get($(esc(collection)), $(esc(key)), nothing)
@@ -11,8 +11,22 @@ macro get(collection, key, default)
     end
 end
 
-_getfield(v::T, name::Symbol, d=nothing) where {T} = hasfield(T, name) ? getfield(v, name) : d
-_getfield(v, names, d=nothing) = something(_getfield.(Ref(v), names)..., d) # no runtime cost
+"""Short-circuiting version of [`_getfield`](@ref)."""
+macro getfield(value, name, default=nothing)
+    quote
+        hasfield(typeof($(esc(value))), $name) ? getfield($(esc(value)), $name) : $(esc(default))
+    end
+end
+
+"""
+    _getfield(v, name, default)
+
+Return the field from a composite `v` for the given `name`, or the given `default` if no field is present.
+
+See also: [`getfield`](@ref).
+"""
+_getfield(v, name::Symbol, default=nothing) = hasfield(typeof(v), name) ? getfield(v, name) : default
+_getfield(v, names, default=nothing) = something(_getfield.(Ref(v), names)..., default) # no runtime cost
 
 function _insert!(d::AbstractDict{K}, kw) where {K}
     for (k, v) in kw
