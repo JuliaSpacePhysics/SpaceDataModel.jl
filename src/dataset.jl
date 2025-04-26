@@ -10,7 +10,9 @@ A concrete dataset with a name, data (parameters), and metadata.
 end
 
 """Construct a `DataSet` from a name and data, with optional metadata."""
-DataSet(name, data; metadata=Dict(), kwargs...) = DataSet(name, data, merge(metadata, kwargs))
+function DataSet(name, data; metadata=SDict(), kwargs...)
+    DataSet(name, data, compat_dict(metadata, kwargs))
+end
 
 function fmap(fs, args...; kwargs...)
     map(fs) do f

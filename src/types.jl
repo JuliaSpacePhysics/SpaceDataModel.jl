@@ -25,9 +25,8 @@ mutable struct Project <: AbstractProject
 end
 
 "keyword-based constructor"
-function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=Dict(), kwargs...)
-    _meta = compat_dict(String, metadata, kwargs)
-    Project(name, _meta, instruments, datasets)
+function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=SDict(), kwargs...)
+    Project(name, compat_dict(metadata, kwargs), instruments, datasets)
 end
 
 """
@@ -45,7 +44,9 @@ struct Instrument <: AbstractInstrument
 end
 
 "keyword-based constructor"
-Instrument(; name="", metadata=Dict(), datasets=Dict(), kwargs...) = Instrument(name, merge(metadata, Dict(kwargs)), datasets)
+function Instrument(; name="", metadata=SDict(), datasets=Dict(), kwargs...)
+    Instrument(name, compat_dict(metadata, kwargs), datasets)
+end
 
 "Construct an `Instrument` from a dictionary."
 Instrument(d::Dict) = Instrument(; symbolify(d)...)
@@ -58,25 +59,24 @@ Base.get(f::Function, var::AbstractModel, s) = get(f, meta(var), s)
 
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
 
-function show_field(io::IO, field, value::T, prefix="  ") where {T<:Union{Dict,Vector,Tuple}}
-    println(io, prefix, titlecase(String(field)), " (", T, "):")
-    for (k, v) in pairs(value)
-        println(io, prefix, "  ", k, ": ", v)
+@generated function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
+    fs = setdiff(fieldnames(T), (:name, :format))
+    exs = map(fs) do f
+        sf = QuoteNode(f)
+        title = titlecase(String(f))
+        quote
+            v = getfield(p, $sf)
+            if !isempty(v)
+                print(io, "  ", $title)
+                _println_type(io, v)
+                _println_value(io, v)
+            end
+        end
     end
-end
-
-function show_field(io::IO, field, value)
-    print(io, titlecase("  $field"), ": ")
-    println(io, value)
-end
-
-function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
-    printstyled(io, T, ": "; bold=true)
-    printstyled(io, name(p), color=:yellow)
-    println(io)
-
-    for field in setdiff(fieldnames(T), (:name, :format))
-        ff = getfield(p, field)
-        isempty(ff) || show_field(io, field, ff)
+    return quote
+        printstyled(io, T, ": "; bold=true)
+        printstyled(io, name(p), color=:yellow)
+        println(io)
+        $(exs...)
     end
 end

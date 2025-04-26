@@ -76,3 +76,9 @@ end
         @test DateTime("1999") == DateTime(1999)
     end
 end
+
+@testitem "JET - Workload" begin
+    using JET
+    println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
+    println(@report_call ignored_modules = (Base,) SpaceDataModel.workload())
+end

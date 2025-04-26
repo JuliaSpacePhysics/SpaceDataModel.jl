@@ -56,6 +56,7 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T<:AbstractDataVa
     println(io, "  Size: ", size(var))
     println(io, "  Memory Usage: ", Base.format_bytes(Base.summarysize(var)))
     if (m = meta(var)) !== nothing
-        show_field(io, "Metadata", m)
+        println(io, "  Metadata:")
+        _println_value(io, m)
     end
 end
