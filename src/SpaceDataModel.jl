@@ -1,7 +1,7 @@
 module SpaceDataModel
 using Accessors: @set
 import Base: size, ∘
-import Base: push!, insert!, get, show
+import Base: push!, insert!, get, show, getindex, setindex!
 
 export AbstractModel, AbstractProject, AbstractInstrument, AbstractProduct, AbstractDataSet, AbstractCatalog, AbstractEvent
 export AbstractDataVariable

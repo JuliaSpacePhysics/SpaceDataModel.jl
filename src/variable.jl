@@ -21,7 +21,11 @@ end
 
 for f in (:getindex,)
     @eval Base.$f(var::AbstractDataVariable, I::Vararg{Int}) = $f(parent(var), I...)
+    @eval Base.$f(var::AbstractDataVariable, s::Union{String,Symbol}) = $f(meta(var), s)
 end
+
+Base.setindex!(var::AbstractDataVariable, v, I::Vararg{Int}) = setindex!(parent(var), v, I...)
+Base.setindex!(var::AbstractDataVariable, v, s::Union{String,Symbol}) = setindex!(meta(var), v, s)
 
 Base.get(var::AbstractDataVariable, s::Union{String,Symbol}, d=nothing) = get(meta(var), s, d)
 Base.get(f::Function, var::AbstractDataVariable, s::Union{String,Symbol}) = get(f, meta(var), s)
