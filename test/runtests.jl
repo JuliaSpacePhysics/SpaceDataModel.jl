@@ -29,7 +29,8 @@ end
     var1 = [1, 2, 3]
     var2 = (4, 5, 6)
     dataset = DataSet("Dataset Name", [var1, var2])
-    @test length(dataset) == 2
+    @test size(dataset) == (2,)
+    @test length(dataset) == size(dataset, 1) == 2
     @test dataset[1] === var1
     @test dataset[2] === var2
     @test dataset[1:2] == [var1, var2]
