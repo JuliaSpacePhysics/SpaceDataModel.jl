@@ -30,8 +30,16 @@ end
 
 """Short-circuiting version of [`_getfield`](@ref)."""
 macro getfield(value, name, default=nothing)
+    :(hasfield(typeof($(esc(value))), $name) ? getfield($(esc(value)), $name) : $(esc(default)))
+end
+
+macro getfield(value, names::Expr, default=nothing)
+    tests = map(names.args) do name
+        :(hasfield(typeof($(esc(value))), $name) && (return getfield($(esc(value)), $name)))
+    end
     quote
-        hasfield(typeof($(esc(value))), $name) ? getfield($(esc(value)), $name) : $(esc(default))
+        $(tests...)
+        return $(esc(default))
     end
 end
 

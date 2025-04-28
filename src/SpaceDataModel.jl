@@ -24,10 +24,10 @@ include("workload.jl")
 include("metadata.jl")
 
 # Interface
-name(v) = @getfield(v, :name, get(v, "name", ""))
-meta(v) = _getfield(v, (:meta, :metadata), NoMetadata())
+name(v) = @getfield v :name get(v, "name", "")
+meta(v) = @getfield v (:meta, :metadata) NoMetadata()
 units(v) = @get(v, "units", nothing)
-times(v) = _getfield(v, (:times, :time))
+times(v) = @getfield v (:times, :time)
 
 function unit(v)
     us = units(v)
