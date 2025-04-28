@@ -1,11 +1,11 @@
-struct Product <: AbstractProduct
-    data::Any
-    transformation::Any
+struct Product{A,F} <: AbstractProduct
+    data::A
+    transformation::F
     name::Union{String,Symbol}
     metadata::Any
-    function Product(data, transformation, name="", metadata=Dict(); kwargs...)
+    function Product(data::A, transformation::F, name="", metadata=Dict(); kwargs...) where {A,F}
         metadata = merge(metadata, kwargs)
-        new(data, transformation, name, metadata)
+        new{A,F}(data, transformation, name, metadata)
     end
 end
 
@@ -26,7 +26,7 @@ func(p::Product) = p.transformation
 # Allow chaining of transformations with multiple products
 ∘(g::AbstractProduct, f::AbstractProduct) = @set g.transformation = func(g) ∘ func(f)
 
-function set(ds::Product, args...; name=nothing, data=nothing, kwargs...)
+function set(ds::AbstractProduct, args...; name=nothing, data=nothing, kwargs...)
     !isnothing(name) && (ds = @set ds.name = name)
     !isnothing(data) && (ds = @set ds.data = data)
     (!isnothing(kwargs) || !isnothing(args)) && (ds = @set ds.metadata = set(ds.metadata, args...; kwargs...))
@@ -42,6 +42,6 @@ end
 
 function Base.show(io::IO, p::Product)
     n = name(p)
-    isempty(n) ? print(io, data(p)) : print(io, n)
+    isnothing(n) ? print(io, data(p)) : print(io, n)
     func(p) !== identity && print(io, " [", func(p), "]")
 end
