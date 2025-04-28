@@ -14,3 +14,7 @@ Base.keys(::NoMetadata) = ()
 Base.haskey(::NoMetadata, args...) = false
 Base.get(::NoMetadata, key, default=nothing) = default
 Base.length(::NoMetadata) = 0
+for f in (:NamedTuple, :Dict)
+    @eval Base.$f(::NoMetadata) = $f()
+    @eval Base.convert(::Type{$f}, ::NoMetadata) = $f()
+end
