@@ -11,6 +11,23 @@ macro get(collection, key, default=nothing)
     end
 end
 
+macro prior_get(c, keys, default=nothing)
+    tests = map(keys.args) do k
+        :(haskey($(esc(c)), $(esc(k))) && (return $(esc(c))[$(esc(k))]))
+    end
+    return quote
+        $(tests...)
+        return $(esc(default))
+    end
+end
+
+function prior_get(c, keys, default=nothing)
+    for k in keys
+        haskey(c, k) && return c[k]
+    end
+    return default
+end
+
 """Short-circuiting version of [`_getfield`](@ref)."""
 macro getfield(value, name, default=nothing)
     quote
@@ -26,7 +43,7 @@ Return the field from a composite `v` for the given `name`, or the given `defaul
 See also: [`getfield`](@ref).
 """
 _getfield(v, name::Symbol, default=nothing) = hasfield(typeof(v), name) ? getfield(v, name) : default
-_getfield(v, names, default=nothing) = something(_getfield.(Ref(v), names)..., default) # no runtime cost
+_getfield(v, names, default=Some(nothing)) = something(_getfield.(Ref(v), names)..., default) # no runtime cost
 
 function _insert!(d::AbstractDict{K}, kw) where {K}
     for (k, v) in kw

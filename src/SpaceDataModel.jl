@@ -29,4 +29,9 @@ meta(v) = _getfield(v, (:meta, :metadata), NoMetadata())
 units(v) = @get(v, "units", nothing)
 times(v) = _getfield(v, (:times, :time))
 
+function unit(v)
+    us = units(v)
+    allequal(us) ? only(us) : error("Units are not equal: $us")
+end
+
 end
