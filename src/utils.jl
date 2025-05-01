@@ -104,11 +104,3 @@ function colors(i)
 end
 
 print_name(io::IO, var) = printstyled(io, name(var); color=colors(7))
-_println_type(io, ::T) where {T} = println(io, " (", T, "):")
-_println_value(io, value, prefix="  ") = println(io, prefix, "  ", value)
-_println_value(io, value::AbstractVector{<:Number}, prefix="  ") = println(io, prefix, ": ", value)
-function _println_value(io, value::Union{AbstractVector,AbstractDict,Tuple}, prefix="  ")
-    for (k, v) in pairs(value)
-        println(io, prefix, "  ", k, ": ", v)
-    end
-end

@@ -42,6 +42,6 @@ end
 
 function Base.show(io::IO, p::Product)
     n = name(p)
-    isnothing(n) ? print(io, data(p)) : print(io, n)
+    isempty(n) ? print(io, data(p)) : print(io, n)
     func(p) !== identity && print(io, " [", func(p), "]")
 end

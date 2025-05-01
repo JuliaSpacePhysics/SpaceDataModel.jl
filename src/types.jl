@@ -57,26 +57,6 @@ Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
 Base.get(var::AbstractModel, s, d=nothing) = get(meta(var), s, d)
 Base.get(f::Function, var::AbstractModel, s) = get(f, meta(var), s)
 
-Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
+# https://github.com/rafaqz/DimensionalData.jl/blob/main/src/array/show.jl
 
-@generated function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:AbstractModel}
-    fs = setdiff(fieldnames(T), (:name, :format))
-    exs = map(fs) do f
-        sf = QuoteNode(f)
-        title = titlecase(String(f))
-        quote
-            v = getfield(p, $sf)
-            if !isempty(v)
-                print(io, "  ", $title)
-                _println_type(io, v)
-                _println_value(io, v)
-            end
-        end
-    end
-    return quote
-        printstyled(io, T, ": "; bold=true)
-        printstyled(io, name(p), color=:yellow)
-        println(io)
-        $(exs...)
-    end
-end
+Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))

@@ -13,7 +13,9 @@ export abbr
 const SDict = Dict{String,Any}
 
 include("utils.jl")
+include("metadata.jl")
 include("types.jl")
+include("show.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable.jl")
@@ -21,7 +23,6 @@ include("catalog.jl")
 include("methods.jl")
 include("timerange.jl")
 include("workload.jl")
-include("metadata.jl")
 
 # Interface
 name(v) = @getfield v :name get(v, "name", "")
