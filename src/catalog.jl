@@ -3,10 +3,11 @@
 abstract type AbstractCatalog <: AbstractModel end
 abstract type AbstractEvent <: AbstractModel end
 
-@kwdef struct Event <: AbstractEvent
-    start
-    stop
-    metadata = Dict()
+@kwdef struct Event{A,T,M} <: AbstractEvent
+    data::A
+    start::T
+    stop::T
+    metadata::M = NoMetadata()
 end
 
 (P::AbstractProduct)(e::Event) = P(e.start, e.stop)
