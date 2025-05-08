@@ -22,6 +22,7 @@ include("variable.jl")
 include("catalog.jl")
 include("methods.jl")
 include("timerange.jl")
+include("coord.jl")
 include("workload.jl")
 
 # Interface

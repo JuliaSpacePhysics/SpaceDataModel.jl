@@ -43,6 +43,18 @@ end
     @test dataset2[2] ∈ (var1, var2)
 end
 
+@testitem "CoordinateSystem" begin
+    using SpaceDataModel.CoordinateSystem
+    using SpaceDataModel.CoordinateSystem: coord
+    using StaticArrays
+    using LinearAlgebra
+    x = GEO(3, 4, 0)
+    @test x == GEO([3, 4, 0])
+    @test coord(x) == GEO()
+    @test norm(x) == 5
+    @test_nowarn display(x)
+end
+
 @testitem "parse_datetime" begin
     using SpaceDataModel: parse_datetime
     using SpaceDataModel.Dates: DateTime
