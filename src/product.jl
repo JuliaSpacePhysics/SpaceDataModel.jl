@@ -3,13 +3,13 @@ struct Product{A,F} <: AbstractProduct
     transformation::F
     name::Union{String,Symbol}
     metadata::Any
-    function Product(data::A, transformation::F, name="", metadata=Dict(); kwargs...) where {A,F}
+    function Product(data::A, transformation::F, name="", metadata=NoMetadata(); kwargs...) where {A,F}
         metadata = merge(metadata, kwargs)
         new{A,F}(data, transformation, name, metadata)
     end
 end
 
-function Product(data; transformation=identity, name="", metadata=Dict(), kwargs...)
+function Product(data; transformation=identity, name="", metadata=NoMetadata(), kwargs...)
     Product(data, transformation, name, metadata; kwargs...)
 end
 

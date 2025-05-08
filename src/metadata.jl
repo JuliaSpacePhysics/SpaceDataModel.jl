@@ -11,6 +11,12 @@ always returns `false`.
 struct NoMetadata end
 
 Base.keys(::NoMetadata) = ()
+
+# Allow merging NoMetadata with a Dict or keyword arguments
+Base.merge(::NoMetadata, d::AbstractDict) = copy(d)
+Base.merge(::NoMetadata, p::Base.Pairs) = Dict{Any,Any}(p)
+Base.merge(m::NoMetadata, d, rest...) = merge(merge(m, d), rest...)
+
 Base.haskey(::NoMetadata, args...) = false
 Base.get(::NoMetadata, key, default=nothing) = default
 Base.length(::NoMetadata) = 0
