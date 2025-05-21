@@ -3,6 +3,7 @@ using Accessors: @set
 import Base: size, ∘
 import Base: push!, insert!, show, getindex, setindex!, length
 import Base: keys, haskey, get
+using Base: @propagate_inbounds
 
 export AbstractModel, AbstractProject, AbstractInstrument, AbstractProduct, AbstractDataSet, AbstractCatalog, AbstractEvent
 export AbstractDataVariable
