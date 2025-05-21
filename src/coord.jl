@@ -1,6 +1,6 @@
 module CoordinateSystem
 using StaticArraysCore
-import Base: size, getindex, cconvert, unsafe_convert
+import Base: size, getindex, cconvert, unsafe_convert, String
 
 export AbstractCoordinateSystem, CoordinateVector, coord
 
@@ -24,8 +24,8 @@ end
 """ GSM
 
 coord(v::CoordinateVector) = v.sym
-(::Type{T})(::Type{S}) where {T<:AbstractString,S<:AbstractCoordinateSystem} = T(String(nameof(S)))
-(::Type{T})(::S) where {T<:AbstractString,S<:AbstractCoordinateSystem} = T(S)
+Base.String(::Type{S}) where {S<:AbstractCoordinateSystem} = String(nameof(S))
+Base.String(::S) where {S<:AbstractCoordinateSystem} = T(S)
 
 # https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/FieldArray.jl
 Base.size(::CoordinateVector) = (3,)
