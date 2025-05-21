@@ -1,7 +1,8 @@
 module CoordinateSystem
 using StaticArraysCore
+import Base: size, getindex, cconvert, unsafe_convert
 
-export CoordinateVector
+export AbstractCoordinateSystem, CoordinateVector, coord
 
 abstract type AbstractCoordinateSystem end
 
@@ -23,5 +24,16 @@ end
 """ GSM
 
 coord(v::CoordinateVector) = v.sym
+(::Type{T})(::Type{S}) where {T<:AbstractString,S<:AbstractCoordinateSystem} = T(String(nameof(S)))
+(::Type{T})(::S) where {T<:AbstractString,S<:AbstractCoordinateSystem} = T(S)
+
+# https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/FieldArray.jl
+Base.size(::CoordinateVector) = (3,)
+Base.@propagate_inbounds Base.getindex(a::CoordinateVector, i::Int) = getfield(a, i)
+
+# C interface
+Base.cconvert(::Type{<:Ptr}, a::CoordinateVector) = Base.RefValue(a)
+Base.unsafe_convert(::Type{Ptr{T}}, m::Base.RefValue{FA}) where {T,FA<:CoordinateVector{T}} =
+    Ptr{T}(Base.unsafe_convert(Ptr{FA}, m))
 
 end
