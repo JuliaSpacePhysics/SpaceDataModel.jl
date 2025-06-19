@@ -1,13 +1,16 @@
 # SpaceDataModel
 
-[![Build Status](https://github.com/Beforerr/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Beforerr/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![DOI](https://zenodo.org/badge/958430775.svg)](https://doi.org/10.5281/zenodo.15207556)
+[![](https://img.shields.io/badge/%F0%9F%9B%A9%EF%B8%8F_tested_with-JET.jl-233f9a)](https://github.com/aviatesk/JET.jl)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+[![Coverage](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl)
 
 ## Overview
 
 SpaceDataModel.jl is a lightweight Julia package providing a flexible data model for handling space/heliospheric science data. It offers abstractions for organizing space data into hierarchical structures including projects, instruments, datasets, and data variables.
 
-It is used in [SPEDAS.jl](https://github.com/Beforerr/SPEDAS.jl), [Speasy.jl](https://github.com/SciQLop/Speasy.jl), and [HAPIClient.jl](https://github.com/Beforerr/HAPIClient.jl).
+It is used in [SPEDAS.jl](https://github.com/Beforerr/SPEDAS.jl), [Speasy.jl](https://github.com/SciQLop/Speasy.jl), and [HAPIClient.jl](https://github.com/JuliaSpacePhysics/HAPIClient.jl).
 
 ## Installation
 

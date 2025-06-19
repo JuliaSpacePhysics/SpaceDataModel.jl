@@ -20,6 +20,8 @@ function fmap(fs, args...; kwargs...)
     end
 end
 
+∘(f::Function, p::DataSet) = @set p.data = f .∘ p.data
+
 data(ds::DataSet) = ds.data
 func(ds::AbstractDataSet) = fmap
 
