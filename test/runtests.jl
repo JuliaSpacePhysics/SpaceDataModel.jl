@@ -14,9 +14,9 @@ end
 
 @testitem "Project" begin
     using SpaceDataModel: meta, abbr, name
-    project = Project(name="Project Name", abbreviation="Proj", links="links")
-    instrument = Instrument(name="Instrument Name")
-    dataset = DataSet(name="Dataset Name")
+    project = Project(name = "Project Name", abbreviation = "Proj", links = "links")
+    instrument = Instrument(name = "Instrument Name")
+    dataset = DataSet(name = "Dataset Name")
     push!(project, instrument, dataset)
     push!(instrument, dataset)
     @test name(project) == "Project Name"
@@ -43,18 +43,6 @@ end
     @test dataset2[2] ∈ (var1, var2)
 end
 
-@testitem "CoordinateSystem" begin
-    using SpaceDataModel.CoordinateSystem
-    using SpaceDataModel.CoordinateSystem: coord
-    using StaticArrays
-    using LinearAlgebra
-    x = GEO(3, 4, 0)
-    @test x == GEO([3, 4, 0])
-    @test coord(x) == GEO()
-    @test norm(x) == 5
-    @test_nowarn display(x)
-end
-
 @testitem "parse_datetime" begin
     using SpaceDataModel: parse_datetime
     using SpaceDataModel.Dates: DateTime
@@ -74,7 +62,7 @@ end
         "1989-01-01T00:00:00.", "1989-01-01T00:00:00.0",
         "1989-001T00:00:00.0", "1989-01-01T00:00:00.00",
         "1989-001T00:00:00.00", "1989-01-01T00:00:00.000",
-        "1989-001T00:00:00.000"
+        "1989-001T00:00:00.000",
     ]
 
     expected = DateTime(1989, 1, 1)

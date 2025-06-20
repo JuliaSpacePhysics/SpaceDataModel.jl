@@ -9,6 +9,7 @@ makedocs(
     modules = [SpaceDataModel],
     pages = [
         "Home" => "index.md",
+        "Interface" => "interface.md",
         "API" => "api.md",
     ],
     checkdocs = :exports,
