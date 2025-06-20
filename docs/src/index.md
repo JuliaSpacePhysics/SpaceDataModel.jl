@@ -36,5 +36,5 @@ See [Data Model and Project Module - SPEDAS.jl](https://beforerr.github.io/SPEDA
 
 - [SPASE Model](https://spase-group.org/data/model/index.html)
 - [HAPI Data Access Specification](https://github.com/hapi-server/data-specification)
-- [CommonDataModel.jl](https://github.com/JuliaGeo/CommonDataModel.jl)
+- [CommonDataModel.jl](https://github.com/JuliaGeo/CommonDataModel.jl) contains abstracts type definition for loading and manipulating GRIB, NetCDF, geoTiff and Zarr files.
 - [NetCDF Data Model](https://docs.unidata.ucar.edu/netcdf-c/current/netcdf_data_model.html)
