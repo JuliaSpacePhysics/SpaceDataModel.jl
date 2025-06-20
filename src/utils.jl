@@ -48,7 +48,7 @@ end
 
 Return the field from a composite `v` for the given `name`, or the given `default` if no field is present.
 
-See also: [`getfield`](@ref).
+See also: `getfield`.
 """
 _getfield(v, name::Symbol, default=nothing) = hasfield(typeof(v), name) ? getfield(v, name) : default
 _getfield(v, names, default=Some(nothing)) = something(_getfield.(Ref(v), names)..., default) # no runtime cost
