@@ -3,10 +3,10 @@
 
 A concrete dataset with a name, data (parameters), and metadata.
 """
-@kwdef struct DataSet{T} <: AbstractDataSet
+@kwdef struct DataSet{T, MD} <: AbstractDataSet
     name::String = ""
     data::T = Dict()
-    metadata::Dict = Dict()
+    metadata::MD = NoMetadata()
 end
 
 """Construct a `DataSet` from a name and data, with optional metadata."""
@@ -49,11 +49,11 @@ ds = DataSet(lds; probe=1, data_rate="fast", data_type="des")
 The format string and variable patterns use placeholders like `{probe}`, `{data_rate}`, 
 which are replaced with actual values when creating a concrete `DataSet`.
 """
-@kwdef struct LDataSet <: AbstractDataSet
+@kwdef struct LDataSet{MD} <: AbstractDataSet
     name::String = ""
     format::String = ""
     data::Dict{String,String} = Dict()
-    metadata::Dict = Dict()
+    metadata::MD = NoMetadata()
 end
 
 "Construct a `LDataSet` from a dictionary."
@@ -83,4 +83,11 @@ for f in (:getindex, :iterate, :size, :length, :keys)
     @eval Base.$f(var::AbstractDataSet, args...) = $f(parent(var), args...)
 end
 
-Base.getindex(ds::DataSet{<:Dict}, i::Integer) = ds[collect(keys(ds))[i]]
+# https://github.com/JuliaLang/julia/issues/54454
+_nth(itr, n) = begin
+    y = iterate(Base.Iterators.drop(itr, n-1))
+    isnothing(y) ? throw(BoundsError(itr, n)) : first(y)
+end
+
+Base.getindex(ds::DataSet, i::Integer) = _nth(values(ds.data), i)
+Base.push!(ds::DataSet, v) = push!(ds.data, v)
