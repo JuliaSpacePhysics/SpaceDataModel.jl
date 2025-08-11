@@ -1,8 +1,9 @@
 # SpaceDataModel
 
-[![Build Status](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
+[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
 [![DOI](https://zenodo.org/badge/958430775.svg)](https://doi.org/10.5281/zenodo.15207556)
+
+[![Build Status](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![](https://img.shields.io/badge/%F0%9F%9B%A9%EF%B8%8F_tested_with-JET.jl-233f9a)](https://github.com/aviatesk/JET.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![Coverage](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl)
@@ -23,13 +24,15 @@ Pkg.add("SpaceDataModel")
 ## Usage
 
 ```julia
-using SpaceDataModel
+using SpaceDataModel: Project, Instrument, DataSet, DataVariable
 
 # Create a project
 project = Project(; name="Project Name")
 instrument = Instrument(; name="Instrument Name")
 dataset = DataSet(name="Dataset Name")
+var = DataVariable([1.0, 2.0, 3.0], Dict())
 
 push!(project, instrument, dataset)
 push!(instrument, dataset)
+push!(dataset, var)
 ```

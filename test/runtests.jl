@@ -3,8 +3,8 @@ using Test
 
 @run_package_tests
 
-@testset "SpaceDataModel.jl" begin
-    # Write your tests here.
+@testitem "SpaceDataModel.jl" begin
+    @test_nowarn SpaceDataModel.workload()
 end
 
 @testitem "Aqua" begin
@@ -41,6 +41,7 @@ end
     @test dataset2["key1"] === var1
     @test dataset2["key2"] === var2
     @test dataset2[2] ∈ (var1, var2)
+    @test_throws BoundsError dataset2[3]
 end
 
 @testitem "parse_datetime" begin
@@ -77,6 +78,7 @@ end
         @test DateTime("1999") == DateTime(1999)
     end
 end
+
 
 @testitem "JET - Workload" begin
     using JET
