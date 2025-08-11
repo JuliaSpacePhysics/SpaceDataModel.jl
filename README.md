@@ -29,10 +29,10 @@ using SpaceDataModel: Project, Instrument, DataSet, DataVariable
 # Create a project
 project = Project(; name="Project Name")
 instrument = Instrument(; name="Instrument Name")
-dataset = DataSet(name="Dataset Name")
+dataset = DataSet(; name="Dataset Name")
 var = DataVariable([1.0, 2.0, 3.0], Dict())
 
 push!(project, instrument, dataset)
 push!(instrument, dataset)
-push!(dataset, var)
+dataset["var"] = var
 ```
