@@ -9,7 +9,7 @@ export AbstractModel, AbstractProject, AbstractInstrument, AbstractProduct, Abst
 export AbstractDataVariable
 export Project, Instrument, DataSet, LDataSet, Product
 export Event
-export abbr
+export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 
 const SDict = Dict{String,Any}
 
