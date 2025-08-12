@@ -10,6 +10,8 @@ always returns `false`.
 """
 struct NoMetadata end
 
+const NoData = NoMetadata
+
 Base.keys(::NoMetadata) = ()
 
 # Allow merging NoMetadata with a Dict or keyword arguments

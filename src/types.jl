@@ -17,16 +17,16 @@ A representation of a project or mission containing instruments and datasets.
 - `instruments`: Collection of instruments
 - `datasets`: Collection of datasets
 """
-mutable struct Project <: AbstractProject
+mutable struct Project{I, D, MD} <: AbstractProject
     name::String
-    metadata::Dict
-    instruments::Dict
-    datasets::Dict
+    instruments::I
+    datasets::D
+    metadata::MD
 end
 
 "keyword-based constructor"
 function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=SDict(), kwargs...)
-    Project(name, compat_dict(metadata, kwargs), instruments, datasets)
+    Project(name, instruments, datasets, compat_dict(metadata, kwargs))
 end
 
 """
@@ -37,19 +37,19 @@ end
 - `metadata`: Additional metadata
 - `datasets`: Collection of datasets
 """
-struct Instrument <: AbstractInstrument
+struct Instrument{D, MD} <: AbstractInstrument
     name::String
-    metadata::Dict
-    datasets::Dict
+    datasets::D
+    metadata::MD
 end
 
 "keyword-based constructor"
 function Instrument(; name="", metadata=SDict(), datasets=Dict(), kwargs...)
-    Instrument(name, compat_dict(metadata, kwargs), datasets)
+    Instrument(name, datasets, compat_dict(metadata, kwargs))
 end
 
 "Construct an `Instrument` from a dictionary."
-Instrument(d::Dict) = Instrument(; symbolify(d)...)
+Instrument(d::AbstractDict) = Instrument(; (Symbol(k) => v for (k, v) in d)...)
 
 Base.insert!(p::Project, i, v::AbstractInstrument) = (p.instruments[i] = v; p)
 Base.insert!(p::Union{Project,Instrument}, i, v::AbstractDataSet) = (p.datasets[i] = v; p)

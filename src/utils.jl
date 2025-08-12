@@ -60,11 +60,15 @@ function _insert!(d::AbstractDict{K}, kw) where {K}
     return d
 end
 
+# https://github.com/JuliaLang/julia/issues/54454
+_nth(itr, n) = begin
+    y = iterate(Base.Iterators.drop(itr, n-1))
+    isnothing(y) ? throw(BoundsError(itr, n)) : first(y)
+end
+
 compat_dict(K::Type, m) = _insert!(Dict{K,Any}(), m)
 compat_dict(K::Type, m, kw) = _insert!(compat_dict(K, m), kw)
 compat_dict(m, kw) = compat_dict(String, m, kw)
-
-symbolify(d::Dict) = Dict{Symbol,Any}(Symbol(k) => v for (k, v) in d)
 
 function format_pattern(pattern; kwargs...)
     pairs = ("{$k}" => v for (k, v) in kwargs)

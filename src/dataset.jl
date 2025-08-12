@@ -3,9 +3,9 @@
 
 A concrete dataset with a name, data (parameters), and metadata.
 """
-@kwdef struct DataSet{T, MD} <: AbstractDataSet
+@kwdef struct DataSet{D, MD} <: AbstractDataSet
     name::String = ""
-    data::T = Dict()
+    data::D = NoData()
     metadata::MD = NoMetadata()
 end
 
@@ -49,18 +49,11 @@ ds = DataSet(lds; probe=1, data_rate="fast", data_type="des")
 The format string and variable patterns use placeholders like `{probe}`, `{data_rate}`, 
 which are replaced with actual values when creating a concrete `DataSet`.
 """
-@kwdef struct LDataSet{MD} <: AbstractDataSet
+@kwdef struct LDataSet{D, MD} <: AbstractDataSet
     name::String = ""
-    format::String = ""
-    data::Dict{String,String} = Dict()
+    data::D = NoData()
     metadata::MD = NoMetadata()
-end
-
-"Construct a `LDataSet` from a dictionary."
-function LDataSet(d::Dict)
-    dict = symbolify(d)
-    rename!(dict, :parameters, :data)
-    LDataSet(; dict...)
+    format::String = ""
 end
 
 """
@@ -81,12 +74,6 @@ end
 Base.parent(ds::AbstractDataSet) = ds.data
 for f in (:getindex, :iterate, :size, :length, :keys)
     @eval Base.$f(var::AbstractDataSet, args...) = $f(parent(var), args...)
-end
-
-# https://github.com/JuliaLang/julia/issues/54454
-_nth(itr, n) = begin
-    y = iterate(Base.Iterators.drop(itr, n-1))
-    isnothing(y) ? throw(BoundsError(itr, n)) : first(y)
 end
 
 Base.getindex(ds::DataSet, i::Integer) = _nth(values(ds.data), i)
