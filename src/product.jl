@@ -1,11 +1,11 @@
-struct Product{A,F} <: AbstractProduct
+struct Product{A,F,MD} <: AbstractProduct
     data::A
     transformation::F
     name::Union{String,Symbol}
-    metadata::Any
-    function Product(data::A, transformation::F, name="", metadata=NoMetadata(); kwargs...) where {A,F}
+    metadata::MD
+    function Product(data::A, transformation::F, name="", metadata::MD=NoMetadata(); kwargs...) where {A,F,MD}
         metadata = merge(metadata, kwargs)
-        new{A,F}(data, transformation, name, metadata)
+        new{A,F,MD}(data, transformation, name, metadata)
     end
 end
 
