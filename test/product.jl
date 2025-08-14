@@ -23,7 +23,7 @@
 
     # Test construction with kwargs that become metadata
     p5 = Product([1, 2, 3]; units="m/s", description="velocity")
-    @test p5.metadata isa Base.Pairs
+    @test p5.metadata isa AbstractDict
     @test p5.metadata[:units] == "m/s"
     @test p5.metadata[:description] == "velocity"
 
