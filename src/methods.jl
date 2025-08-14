@@ -1,10 +1,3 @@
-"""
-    abbr(p)
-
-Get the abbreviation (abbr) of `p`.
-"""
-abbr(p) = @get(p, "abbreviation", name(p))
-
 struct Extended{F,T} <: Function
     f::F
     left::T

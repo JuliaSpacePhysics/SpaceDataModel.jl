@@ -25,8 +25,8 @@ mutable struct Project{I, D, MD} <: AbstractProject
 end
 
 "keyword-based constructor"
-function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=SDict(), kwargs...)
-    Project(name, instruments, datasets, compat_dict(metadata, kwargs))
+function Project(; name="", instruments=Dict(), datasets=Dict(), metadata=NoMetadata(), kwargs...)
+    Project(name, instruments, datasets, merge(metadata, kwargs))
 end
 
 """
@@ -44,8 +44,8 @@ struct Instrument{D, MD} <: AbstractInstrument
 end
 
 "keyword-based constructor"
-function Instrument(; name="", metadata=SDict(), datasets=Dict(), kwargs...)
-    Instrument(name, datasets, compat_dict(metadata, kwargs))
+function Instrument(; name="", datasets=Dict(), metadata=NoMetadata(), kwargs...)
+    Instrument(name, datasets, merge(metadata, kwargs))
 end
 
 "Construct an `Instrument` from a dictionary."

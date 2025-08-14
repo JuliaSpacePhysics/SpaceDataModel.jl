@@ -53,22 +53,11 @@ See also: `getfield`.
 _getfield(v, name::Symbol, default=nothing) = hasfield(typeof(v), name) ? getfield(v, name) : default
 _getfield(v, names, default=Some(nothing)) = something(_getfield.(Ref(v), names)..., default) # no runtime cost
 
-function _insert!(d::AbstractDict{K}, kw) where {K}
-    for (k, v) in kw
-        d[K(k)] = v
-    end
-    return d
-end
-
 # https://github.com/JuliaLang/julia/issues/54454
 _nth(itr, n) = begin
     y = iterate(Base.Iterators.drop(itr, n-1))
     isnothing(y) ? throw(BoundsError(itr, n)) : first(y)
 end
-
-compat_dict(K::Type, m) = _insert!(Dict{K,Any}(), m)
-compat_dict(K::Type, m, kw) = _insert!(compat_dict(K, m), kw)
-compat_dict(m, kw) = compat_dict(String, m, kw)
 
 function format_pattern(pattern; kwargs...)
     pairs = ("{$k}" => v for (k, v) in kwargs)

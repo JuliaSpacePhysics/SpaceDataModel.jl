@@ -11,8 +11,6 @@ export Project, Instrument, DataSet, LDataSet, Product
 export Event
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 
-const SDict = Dict{String,Any}
-
 include("utils.jl")
 include("metadata.jl")
 include("types.jl")
