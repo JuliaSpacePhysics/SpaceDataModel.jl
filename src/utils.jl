@@ -89,17 +89,6 @@ function rename!(d::Dict, old_keys::Union{Tuple,Vector}, new_key)
     end
 end
 
-function set!(d::Dict, args::Pair...; kwargs...)
-    foreach(args) do (k, v)
-        d[k] = v
-    end
-    merge!(d, kwargs)
-end
-
-function set(d::Dict, args::Pair...; kwargs...)
-    return merge(d, Dict(args...), kwargs)
-end
-
 # https://github.com/rafaqz/DimensionalData.jl/blob/main/src/Dimensions/show.jl#L5
 function colors(i)
     colors = [209, 32, 81, 204, 249, 166, 37]

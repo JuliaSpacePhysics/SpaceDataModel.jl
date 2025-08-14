@@ -72,9 +72,5 @@ function DataSet(ld::LDataSet; kwargs...)
 end
 
 Base.parent(ds::AbstractDataSet) = ds.data
-for f in (:getindex, :iterate, :size, :length, :keys)
-    @eval Base.$f(var::AbstractDataSet, args...) = $f(parent(var), args...)
-end
-
 Base.getindex(ds::DataSet, i::Integer) = _nth(values(ds.data), i)
 Base.push!(ds::DataSet, v) = push!(ds.data, v)
