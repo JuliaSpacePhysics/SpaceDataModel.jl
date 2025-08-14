@@ -1,23 +1,23 @@
+# References:
+# https://github.com/MakieOrg/AlgebraOfGraphics.jl/blob/master/src/algebra/layer.jl
+
 struct Product{A,F,MD} <: AbstractProduct
     data::A
     transformation::F
     name::Union{String,Symbol}
     metadata::MD
-    function Product(data::A, transformation::F, name="", metadata::MD=NoMetadata(); kwargs...) where {A,F,MD}
-        metadata = merge(metadata, kwargs)
-        new{A,F,MD}(data, transformation, name, metadata)
-    end
 end
 
-function Product(data; transformation=identity, name="", metadata=NoMetadata(), kwargs...)
-    Product(data, transformation, name, metadata; kwargs...)
+function Product(data::A, transformation=identity; name="", metadata=NoMetadata(), kwargs...) where {A}
+    new_meta = merge(metadata, kwargs)
+    Product(data, transformation, name, new_meta)
 end
 
-data(p::Product) = p.data
-func(p::AbstractProduct) = identity
+Base.parent(p::Product) = p.data
+func(::AbstractProduct) = identity
 func(p::Product) = p.transformation
 
-(p::AbstractProduct)(args...; kwargs...) = func(p)(data(p), args...; kwargs...)
+(p::AbstractProduct)(args...; kwargs...) = func(p)(parent(p), args...; kwargs...)
 
 """Create a new product with the composed function"""
 ∘(f, p::AbstractProduct) = @set p.transformation = f ∘ func(p)
@@ -26,22 +26,19 @@ func(p::Product) = p.transformation
 # Allow chaining of transformations with multiple products
 ∘(g::AbstractProduct, f::AbstractProduct) = @set g.transformation = func(g) ∘ func(f)
 
-function set(ds::AbstractProduct, args...; name=nothing, data=nothing, kwargs...)
-    !isnothing(name) && (ds = @set ds.name = name)
-    !isnothing(data) && (ds = @set ds.data = data)
-    (!isnothing(kwargs) || !isnothing(args)) && (ds = @set ds.metadata = set(ds.metadata, args...; kwargs...))
-    return ds
+function set(p::Product; name=nothing, data=nothing, transformation=nothing, metadata=nothing, kwargs...)
+    !isnothing(name) && (p = @set p.name = name)
+    !isnothing(data) && (p = @set p.data = data)
+    !isnothing(transformation) && (p = @set p.transformation = transformation)
+    !isnothing(metadata) && (p = @set p.metadata = metadata)
+    length(kwargs) > 0 && (p = @set p.metadata = merge(p.metadata, kwargs))
+    return p
 end
 
-function set!!(ds::Product, args...; name=nothing, data=nothing, kwargs...)
-    !isnothing(name) && (ds = @set ds.name = name)
-    !isnothing(data) && (ds = @set ds.data = data)
-    set!(ds.metadata, args...; kwargs...)
-    ds
-end
+set(p::Product, data, transformation=nothing; kwargs...) = set(p; data, transformation, kwargs...)
 
 function Base.show(io::IO, p::Product)
     n = name(p)
-    isempty(n) ? print(io, data(p)) : print(io, n)
+    isempty(n) ? print(io, parent(p)) : print(io, n)
     func(p) !== identity && print(io, " [", func(p), "]")
 end

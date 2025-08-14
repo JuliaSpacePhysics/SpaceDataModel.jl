@@ -57,6 +57,10 @@ Base.push!(p::Union{Project,Instrument}, v) = insert!(p, name(v), v)
 Base.get(var::AbstractModel, s, d=nothing) = get(meta(var), s, d)
 Base.get(f::Function, var::AbstractModel, s) = get(f, meta(var), s)
 
+for f in (:getindex, :iterate, :size, :length, :keys, :values)
+    @eval Base.$f(var::AbstractProduct, args...) = $f(parent(var), args...)
+end
+
 # https://github.com/rafaqz/DimensionalData.jl/blob/main/src/array/show.jl
 
 Base.show(io::IO, p::T) where {T<:AbstractModel} = print(io, name(p))
