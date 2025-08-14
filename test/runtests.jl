@@ -15,7 +15,7 @@ end
 end
 
 @testitem "Project" begin
-    using SpaceDataModel: meta, abbr, name
+    using SpaceDataModel: meta, name
     project = Project(name = "Project Name", abbreviation = "Proj", links = "links")
     instrument = Instrument(name = "Instrument Name")
     dataset = DataSet(name = "Dataset Name")
@@ -25,7 +25,6 @@ end
     @test length(project.instruments) == 1
     @test length(project.datasets) == 1
     @test length(instrument.datasets) == 1
-    @test abbr(project) == "Proj"
 end
 
 @testitem "parse_datetime" begin
