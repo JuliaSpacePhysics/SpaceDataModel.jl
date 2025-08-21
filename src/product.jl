@@ -26,7 +26,7 @@ func(p::Product) = p.transformation
 # Allow chaining of transformations with multiple products
 ∘(g::AbstractProduct, f::AbstractProduct) = @set g.transformation = func(g) ∘ func(f)
 
-function set(p::Product; name=nothing, data=nothing, transformation=nothing, metadata=nothing, kwargs...)
+function set(p::AbstractProduct; name=nothing, data=nothing, transformation=nothing, metadata=nothing, kwargs...)
     !isnothing(name) && (p = @set p.name = name)
     !isnothing(data) && (p = @set p.data = data)
     !isnothing(transformation) && (p = @set p.transformation = transformation)

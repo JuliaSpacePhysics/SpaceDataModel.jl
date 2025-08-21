@@ -26,7 +26,9 @@ include("coord.jl")
 include("workload.jl")
 
 # Interface
-name(v) = @getfield v :name getmeta(v, "name", "")
+name(v) = @getfield v :name meta_name(meta(v))
+meta_name(nt::NamedTuple) = get(nt, :name, "")
+meta_name(meta) = get(meta, "name", "")
 
 """
     getmeta(x)
@@ -41,16 +43,19 @@ getmeta(x) = @getfield x (:meta, :metadata) NoMetadata()
 
 Get metadata value associated with object `x` for key `key`, or `default` if `key` is not present.
 """
-getmeta(x, key, default=nothing) = get(meta(x), key, default)
+getmeta(x, key, default = nothing) = get(meta(x), key, default)
 
 meta(x) = getmeta(x) # not exported (to be removed)
 
-units(v) = @get(v, "units", nothing)
+function units(v)
+    m = getmeta(v)
+    return m isa NamedTuple ? get(m, :units, nothing) : get(m, "units", nothing)
+end
 times(v) = @getfield v (:times, :time)
 
 function unit(v)
     us = units(v)
-    allequal(us) ? only(us) : error("Units are not equal: $us")
+    return allequal(us) ? only(us) : error("Units are not equal: $us")
 end
 
 """
@@ -88,8 +93,8 @@ Update metadata for object `x` for key `key` to have value `value` and return `x
 function setmeta end
 
 function setmeta(x, args::Pair...; kw...)
-    return @set x.metadata=_merge(meta(x), Dict(args...), kw)
+    return @set x.metadata = _merge(meta(x), Dict(args...), kw)
 end
-setmeta(x, dict::AbstractDict) = @set x.metadata=_merge(meta(x), dict)
+setmeta(x, dict::AbstractDict) = @set x.metadata = _merge(meta(x), dict)
 
 end
