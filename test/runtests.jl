@@ -66,5 +66,5 @@ end
 @testitem "JET - Workload" begin
     using JET
     println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
-    println(@report_call ignored_modules = (Base,) SpaceDataModel.workload())
+    @test_call SpaceDataModel.workload()
 end
