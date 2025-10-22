@@ -1,4 +1,5 @@
 _isdefault(v) = false
+_isdefault(::NoMetadata) = true
 _isdefault(v::AbstractDict) = isempty(v)
 _isdefault(v::Tuple) = isempty(v)
 
