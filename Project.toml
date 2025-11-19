@@ -1,7 +1,7 @@
 name = "SpaceDataModel"
 uuid = "0b37b92c-f0c5-4a52-bd5c-390dec20857c"
+version = "0.2.1"
 authors = ["Zijin Zhang <zzj956959688@gmail.com>"]
-version = "0.2.0"
 
 [workspace]
 projects = ["docs"]
@@ -15,8 +15,8 @@ CommonDataModel = "1fbeeb36-5f17-413c-809b-666fb144f157"
 DimensionalData = "0703355e-b756-11e9-17c0-8b28908087d0"
 
 [extensions]
-SpaceDataModelDimensionalDataExt = "DimensionalData"
 SpaceDataModelCommonDataModelExt = "CommonDataModel"
+SpaceDataModelDimensionalDataExt = "DimensionalData"
 
 [compat]
 Accessors = "0.1"
