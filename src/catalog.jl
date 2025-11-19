@@ -9,5 +9,3 @@ abstract type AbstractEvent <: AbstractModel end
     stop::T
     metadata::M = NoMetadata()
 end
-
-(P::AbstractProduct)(e::Event) = P(e.start, e.stop)

@@ -88,6 +88,7 @@ end
 print_name(io::IO, var) = printstyled(io, name(var); color=colors(7))
 
 # like merge to avoid privacy issues
+# https://github.com/rafaqz/DimensionalData.jl/issues/1142
 _merge(a, b...) = merge(a, b...)
 
 function set!(d::AbstractDict, args::Pair...; kw...)
