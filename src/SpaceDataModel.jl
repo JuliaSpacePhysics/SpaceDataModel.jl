@@ -27,4 +27,7 @@ include("workload.jl")
 
 include("variable_interface.jl")
 
+include("times.jl")
+using .Times
+
 end
