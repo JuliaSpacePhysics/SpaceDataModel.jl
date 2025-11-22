@@ -29,8 +29,6 @@ function dim(x, s::Union{String, Symbol})
     error("Dimension $s not found")
 end
 
-timedim(x) = dim(x, ndims(x))
-
 """
     getmeta(x)
 
@@ -38,6 +36,7 @@ Get metadata for object `x`. If `x` does not have metadata, return `NoMetadata()
 
 """
 getmeta(x) = @getfield x (:meta, :metadata) NoMetadata()
+getmeta(x::AbstractDict) = x
 
 # like get, but handles NamedTuple
 _get(x, key, default) = get(x, key, default)
@@ -50,10 +49,9 @@ Get metadata value associated with `key` for object `x`, or `default` if `key` i
 """
 getmeta(x, key, default = nothing) = _get(meta(x), key, default)
 
-meta(x) = getmeta(x) # not exported (to be removed)
+const meta = getmeta # not exported (to be removed)
 
 units(v) = @get(v, "units", nothing)
-times(v) = @getfield v (:times, :time) unwrap(timedim(v))
 
 function unit(v)
     us = units(v)

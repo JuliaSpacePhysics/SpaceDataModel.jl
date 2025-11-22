@@ -1,7 +1,7 @@
 # SpaceDataModel
 
-[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
 [![DOI](https://zenodo.org/badge/958430775.svg)](https://doi.org/10.5281/zenodo.15207556)
+[![version](https://juliahub.com/docs/General/SpaceDataModel/stable/version.svg)](https://juliahub.com/ui/Packages/General/SpaceDataModel)
 
 [![Build Status](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![](https://img.shields.io/badge/%F0%9F%9B%A9%EF%B8%8F_tested_with-JET.jl-233f9a)](https://github.com/aviatesk/JET.jl)
@@ -14,12 +14,9 @@ SpaceDataModel.jl is a lightweight Julia package providing a flexible data model
 
 For information on using the package, see the documentation available at https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/.
 
-## Installation
+**Installation**: at the Julia REPL, run `using Pkg; Pkg.add("SpaceDataModel")`
 
-```julia
-using Pkg
-Pkg.add("SpaceDataModel")
-```
+**Documentation**: [![Dev](https://img.shields.io/badge/docs-dev-blue.svg?logo=julia)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
 
 ## Usage
 

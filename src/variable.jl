@@ -32,9 +32,6 @@ Base.setindex!(var::AbstractDataVariable, v, s::Union{String, Symbol}) = setinde
 Base.get(var::AbstractDataVariable, s::Union{String, Symbol}, d = nothing) = _get(meta(var), s, d)
 Base.get(f::Function, var::AbstractDataVariable, s::Union{String, Symbol}) = get(f, meta(var), s)
 
-tmin(v) = minimum(times(v))
-tmax(v) = maximum(times(v))
-
 _timerange_str(times) = "Time Range: $(minimum(times)) to $(maximum(times))"
 
 function Base.show(io::IO, var::T) where {T <: AbstractDataVariable}
