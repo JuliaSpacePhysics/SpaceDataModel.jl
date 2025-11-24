@@ -31,16 +31,22 @@ end
     @test dim(x, :X) == X(1:3)
     @test_throws ErrorException dim(x, :time)
 
-    @test timedim(x) == Ti([1, 2, 3, 4, 5])
-    @test times(x) == [1, 2, 3, 4, 5]
-    @test tmin(x) == 1
-    @test tmax(x) == 5
-    @test unwrap(timedim(x)) == 1:5
-
-    @test name(timedim(x)) == :Ti
     @test string(name(x)) == ""
-
-    @test unwrap(Ti(1:5)) == 1:5
-    @test Ti(1:5) isa DimensionalData.Dimension
     @test unwrap(Ti(view([1, 2, 3, 4, 5], 2:3))) == view(1:5, 2:3)
+
+    @testset "TimeSeriesAPI" begin
+        using SpaceDataModel: tdimnum
+        x = rand(X(3), Ti(5), Z(2))
+        @test tdimnum(x) == 2
+        @test timedim(x) == Ti([1, 2, 3, 4, 5])
+        @test times(x) == [1, 2, 3, 4, 5]
+        @test tmin(x) == 1
+        @test tmax(x) == 5
+        @test unwrap(timedim(x)) == 1:5
+        @test name(timedim(x)) == :Ti
+
+        x = rand(X(3), Dim{:time}(5), Z(2))
+        @test tdimnum(x) == 2
+        @test (@allocated tdimnum(x)) == 0
+    end
 end

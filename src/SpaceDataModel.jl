@@ -27,7 +27,7 @@ include("workload.jl")
 
 include("variable_interface.jl")
 
-include("times.jl")
-using .Times
+include("times.jl");        using .Times
+include("timeseries.jl");   using .TimeSeriesAPI
 
 end

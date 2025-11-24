@@ -1,18 +1,22 @@
 module SpaceDataModelDimensionalDataExt
 
 import SpaceDataModel
-using DimensionalData: AbstractDimArray, TimeDim, dims, Dimension
+using DimensionalData: AbstractDimArray, TimeDim, dims, Dimension, Dim
 import DimensionalData as DD
-import SpaceDataModel: meta, _merge, timedim, unwrap, name
+import SpaceDataModel: meta, _merge, tdimnum, timedim, unwrap, name
 
 _merge(::DD.NoMetadata, d, rest...) = merge(d, rest...)
-meta(A::AbstractDimArray) = DD.metadata(A)
-name(x::Dimension) = DD.name(x)
-unwrap(x::Dimension) = parent(x)
+SpaceDataModel.getmeta(A::AbstractDimArray) = DD.metadata(A)
+SpaceDataModel.name(x::Dimension) = DD.name(x)
+SpaceDataModel.unwrap(x::Dimension) = parent(x)
 
-function SpaceDataModel.timedim(x::AbstractDimArray, query = nothing)
-    query = something(query, TimeDim)
-    qdim = dims(x, query)
-    return isnothing(qdim) ? dims(x, 1) : qdim
-end
+# A no-error version of `dimnum`
+_dimnum(x, dim) = DD.hasdim(x, dim) ? DD.dimnum(x, dim) : nothing
+
+SpaceDataModel.tdimnum(x::AbstractDimArray) = @something(
+    _dimnum(x, TimeDim),
+    _dimnum(x, Dim{:time}),
+    tdimnum(parent(x))
+)
+
 end
