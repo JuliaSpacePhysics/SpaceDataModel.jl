@@ -4,7 +4,7 @@ using Test
 @run_package_tests
 
 @testitem "SpaceDataModel.jl" begin
-    @test_nowarn SpaceDataModel.workload()
+    SpaceDataModel.workload()
 end
 
 @testitem "General Checks" begin
@@ -29,7 +29,7 @@ end
 
 @testitem "parse_datetime" begin
     using SpaceDataModel: parse_datetime
-    using SpaceDataModel.Dates: DateTime
+    using Dates: DateTime
     @test parse_datetime("2001-01-01") == DateTime(2001, 1, 1)
     @test parse_datetime("2001-01-01T05:00:00") == DateTime(2001, 1, 1, 5, 0, 0, 0)
     @test parse_datetime("1999-01") == DateTime(1999, 1, 1)

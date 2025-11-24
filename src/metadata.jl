@@ -22,5 +22,5 @@ Base.merge(::NoMetadata, d) = isempty(d) ? NoMetadata() : copy(d)
 Base.merge(::NoMetadata, d, rest...) = merge(d, rest...)
 
 Base.haskey(::NoMetadata, args...) = false
-Base.get(::NoMetadata, key, default=nothing) = default
+Base.get(::NoMetadata, key, default = nothing) = default
 Base.length(::NoMetadata) = 0
