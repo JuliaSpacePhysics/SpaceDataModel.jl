@@ -11,6 +11,7 @@ export Project, Instrument, DataSet, LDataSet, Product
 export Event
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getmeta, setmeta!, setmeta
+export getdim, tdimnum
 
 include("utils.jl")
 include("metadata.jl")
@@ -25,6 +26,7 @@ include("coord.jl")
 include("workload.jl")
 
 include("variable_interface.jl")
+const getdim = dim
 
 include("times.jl");        using .Times
 include("timeseries.jl");   using .TimeSeriesAPI
