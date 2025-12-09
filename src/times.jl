@@ -7,6 +7,9 @@ export ≃, cadence, parse_datetime
 /ₜ(x, n) = x / n
 /ₜ(x::AbstractTime, n) = Nanosecond(round(Int64, Dates.tons(x) / n))
 
+*ₜ(x, n) = x * n
+*ₜ(x::AbstractTime, n) = Nanosecond(round(Int64, Dates.tons(x) * n))
+
 # workaround for `no method matching isapprox(::Nanosecond, ::Nanosecond)`
 ≃(x, y; kw...) = isapprox(x, y; kw...)
 ≃(x::AbstractTime, y; kw...) = isapprox(Dates.tons(x), Dates.tons(y); kw...)

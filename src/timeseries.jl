@@ -1,6 +1,6 @@
 """A time series-focused namespace for packages to share functions"""
 module TimeSeriesAPI
-using ..SpaceDataModel: dim, @getfield, unwrap
+using ..SpaceDataModel: dim, @getproperty, unwrap
 export tdimnum, timedim, times, tmin, tmax
 """
     tdimnum(x)
@@ -14,7 +14,7 @@ end
 
 timedim(x) = dim(x, tdimnum(x))
 
-times(v) = @getfield v (:times, :time) unwrap(timedim(v))
+times(v) = @getproperty v (:times, :time) unwrap(timedim(v))
 
 tmin(v) = minimum(times(v))
 tmax(v) = maximum(times(v))

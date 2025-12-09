@@ -43,6 +43,16 @@ macro getfield(value, names::Expr, default=nothing)
     end
 end
 
+macro getproperty(value, names::Expr, default=nothing)
+    tests = map(names.args) do name
+        :(hasproperty($(esc(value)), $name) && (return getproperty($(esc(value)), $name)))
+    end
+    quote
+        $(tests...)
+        return $(esc(default))
+    end
+end
+
 """
     _getfield(v, name, default)
 
