@@ -2,6 +2,7 @@
 module TimeSeriesAPI
 using ..SpaceDataModel: dim, @getproperty, unwrap
 export tdimnum, timedim, times, tmin, tmax
+using Dates: AbstractTime
 """
     tdimnum(x)
 
@@ -15,6 +16,7 @@ end
 timedim(x) = dim(x, tdimnum(x))
 
 times(v) = @getproperty v (:times, :time) unwrap(timedim(v))
+times(v::AbstractVector{<:AbstractTime}) = v
 
 tmin(v) = minimum(times(v))
 tmax(v) = maximum(times(v))
