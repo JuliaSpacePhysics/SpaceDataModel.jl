@@ -25,6 +25,8 @@ end
     @test merged1 == dict1
     @test merged1 !== dict1  # Should be a copy
     @test merge(nm, Dict()) == nm # Test merging with empty Dict
+    @test merge(nm, nm) == nm # Test merging with NoMetadata
+    @test merge(nm, dict1, nm) == dict1
 end
 
 @testitem "NoMetadata Type Conversions" begin
@@ -43,7 +45,7 @@ end
     nm = NoMetadata()
 
     # When kwargs are provided, NoMetadata gets merged into Dict
-    p2 = Product([1, 2, 3]; metadata=nm, extra_key="value")
+    p2 = Product([1, 2, 3]; metadata = nm, extra_key = "value")
     @test p2.metadata isa AbstractDict
     @test p2.metadata[:extra_key] == "value"
 

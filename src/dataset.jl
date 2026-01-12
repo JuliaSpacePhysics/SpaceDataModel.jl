@@ -14,16 +14,9 @@ function DataSet(name, data; metadata=NoMetadata(), kwargs...)
     DataSet(name, data, merge(metadata, kwargs))
 end
 
-function fmap(fs, args...; kwargs...)
-    map(fs) do f
-        !isempty(methods(f)) ? f(args...; kwargs...) : f
-    end
-end
-
 ∘(f::Function, p::DataSet) = @set p.data = f .∘ p.data
 
 data(ds::DataSet) = ds.data
-func(ds::AbstractDataSet) = fmap
 
 """
     LDataSet <: AbstractDataSet

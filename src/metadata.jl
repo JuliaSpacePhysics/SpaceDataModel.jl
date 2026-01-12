@@ -16,11 +16,10 @@ Base.keys(::NoMetadata) = ()
 Base.values(::NoMetadata) = ()
 Base.iterate(::NoMetadata) = nothing
 
-Base.merge(::NoMetadata, d) = isempty(d) ? NoMetadata() : copy(d)
-
 # Allow merging NoMetadata with a Dict or keyword arguments
+Base.merge(::NoMetadata, d) = isempty(d) ? NoMetadata() : copy(d)
+Base.merge(d::AbstractDict, ::NoMetadata) = copy(d)
 Base.merge(::NoMetadata, d, rest...) = merge(d, rest...)
 
 Base.haskey(::NoMetadata, args...) = false
 Base.get(::NoMetadata, key, default = nothing) = default
-Base.length(::NoMetadata) = 0

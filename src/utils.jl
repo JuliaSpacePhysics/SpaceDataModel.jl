@@ -11,23 +11,6 @@ macro get(collection, key, default=nothing)
     end
 end
 
-macro prior_get(c, keys, default=nothing)
-    tests = map(keys.args) do k
-        :(haskey($(esc(c)), $(esc(k))) && (return $(esc(c))[$(esc(k))]))
-    end
-    return quote
-        $(tests...)
-        return $(esc(default))
-    end
-end
-
-function prior_get(c, keys, default=nothing)
-    for k in keys
-        haskey(c, k) && return c[k]
-    end
-    return default
-end
-
 """Short-circuiting version of [`_getfield`](@ref)."""
 macro getfield(value, name, default=nothing)
     :(hasfield(typeof($(esc(value))), $name) ? getfield($(esc(value)), $name) : $(esc(default)))
@@ -72,20 +55,6 @@ end
 function format_pattern(pattern; kwargs...)
     pairs = ("{$k}" => v for (k, v) in kwargs)
     return replace(pattern, pairs...)
-end
-
-function rename!(d::Dict, old_key, new_key)
-    data = pop!(d, old_key, nothing)
-
-    if !isnothing(data)
-        d[new_key] = data
-    end
-end
-
-function rename!(d::Dict, old_keys::Union{Tuple,Vector}, new_key)
-    for old_key in old_keys
-        rename!(d, old_key, new_key)
-    end
 end
 
 # https://github.com/rafaqz/DimensionalData.jl/blob/main/src/Dimensions/show.jl#L5

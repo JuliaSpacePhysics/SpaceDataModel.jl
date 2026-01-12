@@ -1,3 +1,15 @@
+@testitem "Fractional multiply and divide" begin
+    using Dates
+    using Unitful
+    using SpaceDataModel.Times: /ₜ, *ₜ
+
+    @test_throws InexactError Day(1) / 2
+    @test_throws InexactError Hour(1) * 3.5
+    @test Day(1) /ₜ 2 == Hour(12)
+    @test Hour(1) *ₜ 3.5 == Minute(60 * 3.5)
+    @test 1u"s" *ₜ 3.5 == 3.5u"s"
+end
+
 @testitem "cadence" begin
     using Dates
     using SpaceDataModel: cadence, ≃
@@ -5,7 +17,9 @@
     # AbstractRange - returns step directly
     @test cadence(1:10) == 1
     @test cadence(0.0:0.5:10.0) == 0.5
-    @test cadence(Nanosecond(1):Nanosecond(1):Nanosecond(100)) == Nanosecond(1)
+    times_ns = Nanosecond(1):Nanosecond(1):Nanosecond(100)
+    @test cadence(times_ns) == Nanosecond(1)
+    @test SpaceDataModel.times(times_ns) == times_ns
 
     # Vector{Float64}
     times = collect(0.0:1.0:100.0)

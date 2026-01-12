@@ -35,7 +35,6 @@ Base.get(f::Function, var::AbstractDataVariable, s::Union{String, Symbol}) = get
 _timerange_str(times) = "Time Range: $(minimum(times)) to $(maximum(times))"
 
 function Base.show(io::IO, var::T) where {T <: AbstractDataVariable}
-    ismissing(var) && return
     print_name(io, var)
     print(io, " [")
     time = times(var)
