@@ -21,7 +21,6 @@ include("dataset.jl")
 include("product.jl")
 include("variable.jl")
 include("catalog.jl")
-include("methods.jl")
 include("coord.jl")
 include("workload.jl")
 
