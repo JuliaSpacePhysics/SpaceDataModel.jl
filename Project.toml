@@ -1,6 +1,6 @@
 name = "SpaceDataModel"
 uuid = "0b37b92c-f0c5-4a52-bd5c-390dec20857c"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Zijin Zhang <zzj956959688@gmail.com>"]
 
 [workspace]
