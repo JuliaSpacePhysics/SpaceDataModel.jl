@@ -9,6 +9,7 @@ export AbstractModel, AbstractProject, AbstractInstrument, AbstractProduct, Abst
 export AbstractDataVariable
 export Project, Instrument, DataSet, LDataSet, Product
 export Event
+export AbstractReferenceFrame, AbstractRepresentation
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getmeta, setmeta!, setmeta
 export getdim, tdimnum
@@ -23,6 +24,9 @@ include("variable.jl")
 include("catalog.jl")
 include("coord.jl")
 include("workload.jl")
+
+include("coordinates/reference_frame.jl")
+include("coordinates/representation.jl")
 
 include("variable_interface.jl")
 const getdim = dim

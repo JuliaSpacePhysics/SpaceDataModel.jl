@@ -1,6 +1,5 @@
 import Base: String
 
-
 """
     AbstractCoordinateSystem
 
@@ -18,7 +17,7 @@ abstract type AbstractCoordinateVector end
 """
     getcsys(x)
 
-Get the coordinate system of `x`.
+Get the coordinate system of `x`. Ideally, this should return both the reference frame and coordinate representation.
 
 If `x` is a instance of `AbstractCoordinateSystem`, return `x` itself.
 If `x` is a type of `AbstractCoordinateSystem`, return an instance of the coordinate system, i.e. `x()`.
