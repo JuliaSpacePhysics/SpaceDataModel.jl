@@ -10,6 +10,7 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "Interface" => "interface.md",
+        "Coordinate Systems" => "coordinate.md",
         "API" => "api.md",
     ],
     checkdocs = :exports,
