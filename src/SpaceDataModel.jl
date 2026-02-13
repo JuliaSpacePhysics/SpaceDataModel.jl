@@ -33,5 +33,6 @@ const getdim = dim
 
 include("times.jl");        using .Times
 include("timeseries.jl");   using .TimeSeriesAPI
+include("timerange.jl");    export TimeRanges
 
 end
