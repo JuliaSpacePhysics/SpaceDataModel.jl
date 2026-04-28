@@ -12,10 +12,37 @@ end
 TimeRanges(t0, t1, cadence = t1 - t0) = TimeRanges(t0, t1, cadence, cadence)
 
 Base.length(iter::TimeRanges) = cld(iter.stop - iter.start, iter.cadence)
+Base.eltype(::Type{<:TimeRanges{T}}) where {T} = NTuple{2, T}
 
-function Base.iterate(iter::TimeRanges, current=iter.start)
+function Base.iterate(iter::TimeRanges, current = iter.start)
     current > iter.stop && return nothing
     tstop = current + iter.window
     next_start = current + iter.cadence
     return (current, tstop), next_start
+end
+
+"""An iterator over continuous segments of a time array, where consecutive times differ by at most `max_dt`."""
+struct ContinuousTimeRanges{T, P} <: AbstractTimeRanges
+    times::T
+    max_dt::P
+end
+
+Base.IteratorSize(::Type{<:ContinuousTimeRanges}) = Base.SizeUnknown()
+Base.eltype(::Type{<:ContinuousTimeRanges{T}}) where {T} = NTuple{2, eltype(T)}
+
+function Base.iterate(iter::ContinuousTimeRanges, start_idx = 1)
+    times = iter.times
+    start_idx > length(times) && return nothing
+
+    range_start = times[start_idx]
+    prev_time = range_start
+
+    for i in (start_idx + 1):length(times)
+        current_time = times[i]
+        if current_time - prev_time > iter.max_dt
+            return (range_start, prev_time), i
+        end
+        prev_time = current_time
+    end
+    return (range_start, last(times)), length(times) + 1
 end
