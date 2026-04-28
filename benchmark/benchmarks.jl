@@ -1,1 +1,3 @@
-@time using SpaceDataModel
+using BenchmarkTools
+
+const SUITE = BenchmarkGroup()
