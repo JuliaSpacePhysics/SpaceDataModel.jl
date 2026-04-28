@@ -11,7 +11,7 @@
     @test haskey(nm, "any_key") == false
     @test haskey(nm, :symbol_key) == false
     # Test get operation with default
-    @test get(nm, "key", nothing) == nothing
+    @test isnothing(get(nm, "key", nothing))
 end
 
 @testitem "NoMetadata Merging Operations" begin
