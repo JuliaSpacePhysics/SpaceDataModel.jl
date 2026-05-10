@@ -1,5 +1,5 @@
 # Interface
-name(v) = @getfield v :name getmeta(v, "name", "")
+name(v) = @getproperty v (:name,) getmeta(v, "name", "")
 
 
 function unwrap end
@@ -35,7 +35,7 @@ end
 Get metadata for object `x`. If `x` does not have metadata, return `NoMetadata()`. 
 
 """
-getmeta(x) = @getfield x (:meta, :metadata) NoMetadata()
+getmeta(x) = @getproperty x (:meta, :metadata) NoMetadata()
 getmeta(x::AbstractDict) = x
 
 # like get, but handles NamedTuple
@@ -51,7 +51,7 @@ getmeta(x, key, default = nothing) = _get(meta(x), key, default)
 
 const meta = getmeta # not exported (to be removed)
 
-units(v) = @get(v, "units", nothing)
+units(v) = get(v, "units", nothing)
 
 function unit(v)
     us = units(v)
