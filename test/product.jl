@@ -14,15 +14,15 @@
     @test func(p2)([1, 2, 3]) == [2, 4, 6]
 
     # Test construction with name
-    p3 = Product([1, 2, 3]; name="test_data")
+    p3 = Product([1, 2, 3]; name = "test_data")
     @test p3.name == "test_data"
 
     # Test construction with metadata
-    p4 = Product([1, 2, 3]; metadata=Dict("units" => "m/s"))
+    p4 = Product([1, 2, 3]; metadata = Dict("units" => "m/s"))
     @test p4.metadata["units"] == "m/s"
 
     # Test construction with kwargs that become metadata
-    p5 = Product([1, 2, 3]; units="m/s", description="velocity")
+    p5 = Product([1, 2, 3]; units = "m/s", description = "velocity")
     @test p5.metadata isa AbstractDict
     @test p5.metadata[:units] == "m/s"
     @test p5.metadata[:description] == "velocity"
@@ -75,10 +75,10 @@ end
     using SpaceDataModel: Product, set
 
     # Test immutable set operations
-    p1 = Product([1, 2, 3]; name="original")
+    p1 = Product([1, 2, 3]; name = "original")
 
     # Test setting name
-    p2 = set(p1; name="new_name")
+    p2 = set(p1; name = "new_name")
     @test p2.name == "new_name"
     @test p1.name == "original"  # Original unchanged
 
@@ -87,8 +87,20 @@ end
     @test set(p1; data)() == data
     @test set(p1, data)() == data
 
-    # Test setting metadata
-    p4 = set(p1; units="m/s", description="velocity")
-    @test p4.metadata[:units] == "m/s"
-    @test p4.metadata[:description] == "velocity"
+    # Test setting metadata via explicit kwarg
+    p4 = set(p1; metadata = Dict("units" => "m/s"))
+    @test p4.metadata["units"] == "m/s"
+
+    # Test setting metadata via kwargs
+    p5 = set(p1; units = "m/s")
+    @test p5.metadata[:units] == "m/s"
+
+    # Test metadata kwarg + kwargs merge
+    p6 = set(p1; metadata = Dict("units" => "m/s"), quality = "good")
+    @test p6.metadata["units"] == "m/s"
+    @test p6.metadata[:quality] == "good"
+
+    # Test setting transformation
+    p7 = set(p1; transformation = x -> x .* 10)
+    @test p7() == [10, 20, 30]
 end

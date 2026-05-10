@@ -20,19 +20,16 @@ func(p::Product) = p.transformation
 (p::AbstractProduct)(args...; kwargs...) = func(p)(parent(p), args...; kwargs...)
 
 """Create a new product with the composed function"""
-∘(f, p::AbstractProduct) = @set p.transformation = f ∘ func(p)
-∘(p::AbstractProduct, f) = @set p.transformation = func(p) ∘ f
+∘(f, p::AbstractProduct) = setproperties(p, (; transformation = f ∘ func(p)))
+∘(p::AbstractProduct, f) = setproperties(p, (; transformation = func(p) ∘ f))
 
 # Allow chaining of transformations with multiple products
-∘(g::AbstractProduct, f::AbstractProduct) = @set g.transformation = func(g) ∘ func(f)
+∘(g::AbstractProduct, f::AbstractProduct) = setproperties(g, (; transformation = func(g) ∘ func(f)))
 
 function set(p::AbstractProduct; name=nothing, data=nothing, transformation=nothing, metadata=nothing, kwargs...)
-    !isnothing(name) && (p = @set p.name = name)
-    !isnothing(data) && (p = @set p.data = data)
-    !isnothing(transformation) && (p = @set p.transformation = transformation)
-    !isnothing(metadata) && (p = @set p.metadata = metadata)
-    length(kwargs) > 0 && (p = @set p.metadata = merge(p.metadata, kwargs))
-    return p
+    isempty(kwargs) || (metadata = merge(something(metadata, p.metadata), kwargs))
+    patch = NamedTuple(k => v for (k, v) in pairs((; name, data, transformation, metadata)) if !isnothing(v))
+    return isempty(patch) ? p : setproperties(p, patch)
 end
 
 set(p::Product, data, transformation=nothing; kwargs...) = set(p; data, transformation, kwargs...)
