@@ -15,7 +15,7 @@ Base.length(iter::TimeRanges) = cld(iter.stop - iter.start, iter.cadence)
 Base.eltype(::Type{<:TimeRanges{T}}) where {T} = NTuple{2, T}
 
 function Base.iterate(iter::TimeRanges, current = iter.start)
-    current > iter.stop && return nothing
+    current >= iter.stop && return nothing
     tstop = current + iter.window
     next_start = current + iter.cadence
     return (current, tstop), next_start
