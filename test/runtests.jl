@@ -3,6 +3,8 @@ using Test
 
 @run_package_tests
 
+const RUN_JET_TESTS = isempty(VERSION.prerelease)
+
 @testitem "SpaceDataModel.jl" begin
     SpaceDataModel.workload()
 end
@@ -62,9 +64,11 @@ end
     end
 end
 
-
-@testitem "JET - Workload" begin
-    using JET
-    println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
-    @test_call SpaceDataModel.workload()
+if RUN_JET_TESTS
+    using Pkg; Pkg.add("JET"); Pkg.instantiate()
+    @testitem "JET - Workload" begin
+        using JET
+        println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
+        @test_call SpaceDataModel.workload()
+    end
 end
