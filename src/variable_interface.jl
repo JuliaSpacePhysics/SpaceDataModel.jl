@@ -93,6 +93,6 @@ Update metadata for object `x` for key `key` to have value `value` and return `x
 function setmeta end
 
 function setmeta(x, args::Pair...; kw...)
-    return @set x.metadata = _merge(meta(x), Dict(args...), kw)
+    return setproperties(x, (; metadata = _merge(meta(x), Dict(args...), kw)))
 end
-setmeta(x, dict::AbstractDict) = @set x.metadata = _merge(meta(x), dict)
+setmeta(x, dict::AbstractDict) = setproperties(x, (; metadata = _merge(meta(x), dict)))

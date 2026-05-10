@@ -14,7 +14,7 @@ function DataSet(name, data; metadata=NoMetadata(), kwargs...)
     DataSet(name, data, merge(metadata, kwargs))
 end
 
-∘(f::Function, p::DataSet) = @set p.data = f .∘ p.data
+∘(f::Function, p::DataSet) = setproperties(p, (; data = f .∘ p.data))
 
 data(ds::DataSet) = ds.data
 

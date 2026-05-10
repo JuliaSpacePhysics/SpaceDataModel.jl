@@ -1,5 +1,5 @@
 module SpaceDataModel
-using Accessors: @set
+using ConstructionBase: setproperties
 import Base: size, ∘
 import Base: push!, insert!, show, getindex, setindex!, length
 import Base: keys, haskey, get
