@@ -5,13 +5,13 @@
     # Test keys operation
     @test keys(nm) == () == keys(NamedTuple())
     @test length(keys(nm)) == 0
-    @info values(nm)
+    @test values(nm) == ()
 
     # Test haskey operation
     @test haskey(nm, "any_key") == false
     @test haskey(nm, :symbol_key) == false
     # Test get operation with default
-    @test get(nm, "key", nothing) == nothing
+    @test get(nm, "key", nothing) === nothing
 end
 
 @testitem "NoMetadata Merging Operations" begin
