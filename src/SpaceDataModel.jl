@@ -31,6 +31,8 @@ include("coordinates/representation.jl")
 include("variable_interface.jl")
 const getdim = dim
 
+include("schemas/schema.jl"); export get_schema
+
 include("times.jl");        using .Times
 include("timeseries.jl");   using .TimeSeriesAPI
 include("timerange.jl");    export TimeRanges, ContinuousTimeRanges
