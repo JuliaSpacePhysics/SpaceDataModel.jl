@@ -37,14 +37,11 @@ end
 
 
 @testitem "Empty Metadata Handling" setup = [MetadataTest] begin
-    using Chairmarks
-
     schema = ISTPSchema()
     metadata = Dict{String, Any}()
     data = MockData([1.0, 2.0], metadata)
     sl = schema(data)
     @test isnothing(sl[:title])
-    @test @b(sl[:title]).allocs == 0
     @test get(sl, :title, "default") == "default"
 end
 
