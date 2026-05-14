@@ -1,5 +1,6 @@
-# SpaceDataModel
+# SpaceDataModel.jl
 
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg?logo=julia)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
 [![DOI](https://zenodo.org/badge/958430775.svg)](https://doi.org/10.5281/zenodo.15207556)
 [![version](https://juliahub.com/docs/General/SpaceDataModel/stable/version.svg)](https://juliahub.com/ui/Packages/General/SpaceDataModel)
 
@@ -8,19 +9,12 @@
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 [![Coverage](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaSpacePhysics/SpaceDataModel.jl)
 
-## Overview
+A lightweight Julia package providing a flexible data model for handling space/heliospheric science data. It offers abstractions for organizing space data into hierarchical structures including projects, instruments, datasets, and data variables.
 
-SpaceDataModel.jl is a lightweight Julia package providing a flexible data model for handling space/heliospheric science data. It offers abstractions for organizing space data into hierarchical structures including projects, instruments, datasets, and data variables.
-
-For information on using the package, see the documentation available at https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/.
-
-**Installation**: at the Julia REPL, run `using Pkg; Pkg.add("SpaceDataModel")`
-
-**Documentation**: [![Dev](https://img.shields.io/badge/docs-dev-blue.svg?logo=julia)](https://JuliaSpacePhysics.github.io/SpaceDataModel.jl/dev/)
-
-## Usage
+## Quick Start
 
 ```julia
+using Pkg; Pkg.add("SpaceDataModel")
 using SpaceDataModel: Project, Instrument, DataSet, DataVariable
 
 # Create a project
@@ -33,3 +27,22 @@ push!(project, instrument, dataset)
 push!(instrument, dataset)
 dataset["var"] = var
 ```
+
+## Metadata Schemas
+
+Resolve semantic attributes (`:name`, `:unit`, `:desc`, …) against heterogeneous metadata formats (ISTP, HAPI, Madrigal).
+
+```julia
+using SpaceDataModel: ISTPSchema, get_schema
+
+# data is anything carrying metadata (raw Dict, DimArray, DataVariable, …)
+schema = ISTPSchema()
+attrs = schema(data)
+attrs[:unit]
+attrs[:desc]
+
+# Or auto-detect the schema from the metadata content
+get_schema(data)
+```
+
+See [`docs/src/schema_guide.md`](docs/src/schema_guide.md) for lookup patterns and extending to new formats.
