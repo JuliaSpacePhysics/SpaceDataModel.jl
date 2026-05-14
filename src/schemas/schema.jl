@@ -17,13 +17,32 @@ Base.getindex(schema::MetadataSchema, key) = get(rules(schema), key, nothing)
 (s::MetadataSchema)(data, key) = SchemaLookup(s, data)[key]
 
 """
+    SchemaDict(schema, data)
+    SchemaDict(schema, pairs::Pair...)
+
+Dict tagged with a [`MetadataSchema`].
+"""
+struct SchemaDict{S, K, V, D <: AbstractDict{K, V}} <: AbstractDict{K, V}
+    schema::S
+    data::D
+end
+
+SchemaDict(schema, pairs::Pair...) = SchemaDict(schema, Dict(pairs...))
+
+for f in (:length, :iterate, :getindex, :setindex!, :get)
+    @eval Base.$f(t::SchemaDict, args...) = Base.$f(t.data, args...)
+end
+
+"""
     get_schema(data)
 
-Get the appropriate metadata schema for the data.
+Get the metadata schema for `data`. Returns the tagged schema if metadata is
+a [`SchemaDict`], otherwise infers from content (e.g. `"CATDESC"` ⇒ ISTP).
 """
 get_schema(data) = _get_schema(getmeta(data))
 get_schema(f::Function, args...) = get_schema(f(args...))
 _get_schema(::Any) = DefaultSchema()
+_get_schema(t::SchemaDict) = t.schema
 function _get_schema(meta::AbstractDict)
     return haskey(meta, "CATDESC") ? ISTPSchema() : DefaultSchema()
 end

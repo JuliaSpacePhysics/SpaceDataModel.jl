@@ -31,7 +31,7 @@ include("coordinates/representation.jl")
 include("variable_interface.jl")
 const getdim = dim
 
-include("schemas/schema.jl"); export get_schema
+include("schemas/schema.jl"); export get_schema, SchemaDict
 
 include("times.jl");        using .Times
 include("timeseries.jl");   using .TimeSeriesAPI
