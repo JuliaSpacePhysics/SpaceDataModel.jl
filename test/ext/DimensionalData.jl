@@ -1,3 +1,39 @@
+@testitem "Schema: DimensionalData ISTP" begin
+    using DimensionalData
+    using SpaceDataModel: ISTPSchema, get_schema
+
+    energy_meta = Dict("UNITS" => "eV", "LABLAXIS" => "Energy", "SCALETYP" => "log")
+    var_meta = Dict(
+        "CATDESC" => "Electron energy spectrogram",
+        "LABLAXIS" => "Flux",
+        "UNITS" => "1/(cm^2 s sr eV)",
+        "SCALETYP" => "log",
+    )
+
+    # Shape: (energy × time) — time is last, so depend_1 picks dim 1 (energy)
+    data = DimArray(
+        rand(10, 5),
+        (X(1.0:10.0; metadata=energy_meta), Ti(1:5));
+        metadata=var_meta
+    )
+
+    @test get_schema(data) isa ISTPSchema
+
+    attrs = ISTPSchema()(data)
+    @test attrs[:desc] == "Electron energy spectrogram"
+    @test attrs[:name] == "Flux"
+    @test attrs[:unit] == "1/(cm^2 s sr eV)"
+    @test attrs[:scale] == "log"
+
+    # depend_1 resolves metadata from the energy dimension
+    @test attrs[:depend_1_name] == "Energy"
+    @test attrs[:depend_1_unit] == "eV"
+    @test attrs[:depend_1_scale] == "log"
+
+    # Missing key returns nothing
+    @test isnothing(attrs[:labels])
+end
+
 @testitem "DimensionalData Metadata" begin
     using DimensionalData
     # Create test data
