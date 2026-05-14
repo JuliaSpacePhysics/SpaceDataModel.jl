@@ -97,7 +97,7 @@ end
 
     @testset "Direct lookup" begin
         @test resolve(metadata, "UNITS") == "km/s"
-        @test resolve(metadata, :UNITS) === nothing
+        @test resolve(metadata, :UNITS) == "km/s"  # Symbol coerces to String
         @test resolve(metadata, "MISSING") === nothing
         @test resolve(metadata, md -> get(md, "name", "default")) == "default"
     end

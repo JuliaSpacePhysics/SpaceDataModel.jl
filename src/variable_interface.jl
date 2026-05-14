@@ -38,9 +38,13 @@ Get metadata for object `x`. If `x` does not have metadata, return `NoMetadata()
 getmeta(x) = @getproperty x (:meta, :metadata) NoMetadata()
 getmeta(x::AbstractDict) = x
 
-# like get, but handles NamedTuple
+# like `get`, with String ↔ Symbol coercion and a safety net for other key-type
+# mismatches (some AbstractDicts, e.g. JSON.Object, error instead of returning default)
 _get(x, key, default) = get(x, key, default)
 _get(x::NamedTuple, key::String, default) = get(x, Symbol(key), default)
+_get(x::AbstractDict{String}, key::Symbol, default) = get(x, String(key), default)
+_get(x::AbstractDict{Symbol}, key::String, default) = get(x, Symbol(key), default)
+_get(x::AbstractDict, key, default) = key isa keytype(x) ? get(x, key, default) : default
 
 """
     getmeta(x, key, default=nothing)

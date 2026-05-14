@@ -75,8 +75,8 @@ struct DefaultSchema <: MetadataSchema end
 rules(::DefaultSchema) = _DEFAULT_MAPPING
 
 const _DEFAULT_MAPPING = (
-    name = ("name", :name) => SpaceDataModel.name,
-    unit = ("unit", :unit),
+    name = "name" => SpaceDataModel.name,
+    unit = "unit",
 )
 
 include("istp.jl")
