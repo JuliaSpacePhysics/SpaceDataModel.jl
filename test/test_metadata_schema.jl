@@ -45,6 +45,46 @@ end
     @test get(sl, :title, "default") == "default"
 end
 
+@testitem "SchemaDict" begin
+    using SpaceDataModel: SchemaDict, ISTPSchema, DefaultSchema, get_schema
+
+    @testset "Construction" begin
+        t = SchemaDict(ISTPSchema(), "UNITS" => "km/s")
+        @test t.schema isa ISTPSchema
+        @test t["UNITS"] == "km/s"
+        # Wrap an existing dict
+        d = Dict("a" => 1, "b" => 2)
+        t2 = SchemaDict(DefaultSchema(), d)
+    end
+
+    @testset "K, V inferred from wrapped dict" begin
+        t = SchemaDict(ISTPSchema(), Dict("UNITS" => "km/s"))
+        @test t isa AbstractDict{String, String}
+        @test eltype(t) === Pair{String, String}
+    end
+
+    @testset "AbstractDict interface" begin
+        t = SchemaDict(ISTPSchema(), "UNITS" => "km/s")
+        @test haskey(t, "UNITS")
+        @test get(t, "UNITS", "default") == "km/s"
+        @test "UNITS" in keys(t)
+        @test length(t) == 1
+        # Mutability when underlying dict is mutable
+        t["new"] = "value"
+        @test t["new"] == "value"
+
+        # Iteration
+        pairs_collected = collect(t)
+        @test length(pairs_collected) == 2
+    end
+
+    @testset "Schema dispatch (no content sniffing)" begin
+        # Explicit DefaultSchema overrides content sniffing
+        t_default = SchemaDict(DefaultSchema(), "CATDESC" => "would be ISTP")
+        @test get_schema((; metadata = t_default)) isa DefaultSchema
+    end
+end
+
 @testitem "resolve Patterns" begin
     using SpaceDataModel: resolve, Via
 
