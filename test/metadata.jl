@@ -53,3 +53,24 @@ end
     p3 = Product([1, 2, 3])
     @test p3.metadata isa NoMetadata
 end
+
+@testitem "OverlayDict" begin
+    using SpaceDataModel: OverlayDict
+
+    base = Dict("source" => "base", "base_only" => 1)
+    d = OverlayDict{String, Any}(base)
+
+    @test d["source"] == "base"
+    @test_throws KeyError d[:source]
+    @test !haskey(d, :base_only)
+    @test get(d, :source, :fallback) == :fallback
+
+    d["source"] = "overlay"
+    d["overlay_only"] = 2
+
+    @test d["source"] == "overlay"
+    @test base["source"] == "base"
+    @test keys(d) isa Base.KeySet
+    @test length(d) == 3
+    @test Dict(d) == Dict("source" => "overlay", "base_only" => 1, "overlay_only" => 2)
+end
