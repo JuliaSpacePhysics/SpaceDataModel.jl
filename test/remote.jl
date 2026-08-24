@@ -21,17 +21,21 @@ end
     @test isempty(_index_names(""))
 end
 
-@testitem "version ordering" begin
-    using SpaceDataModel: _numkey, _version_field
+@testitem "version matching" begin
+    using SpaceDataModel: _numkey, _name_regex
     @test _numkey("1.1.10") > _numkey("1.1.2")
     @test _numkey("01_10") > _numkey("01_02")
 
-    pre, post = "ela_l1_state_defn_20210808_v", ".cdf"
-    @test _version_field("ela_l1_state_defn_20210808_v03.cdf", pre, post) == "03"
+    re = _name_regex("ela_l1_state_defn_20210808_v*.cdf")
+    @test match(re, "ela_l1_state_defn_20210808_v03.cdf").captures == ["03"]
+    # One field may carry its own separators
+    @test match(re, "ela_l1_state_defn_20210808_v01_10.cdf").captures == ["01_10"]
+    @test isnothing(match(re, "ela_l1_state_defn_20210808_v03_beta.cdf"))
+    @test isnothing(match(re, "ela_l1_state_defn_20210808_v03xcdf"))
 end
 
 @testitem "resolve_url" begin
-    using SpaceDataModel: resolve_url, VERSION_FIELD, _LISTINGS
+    using SpaceDataModel: resolve_url, _LISTINGS
     dir = "file://" * mktempdir() * "/"
     seed!(names) = _LISTINGS[dir] = Threads.@spawn names
 
@@ -39,14 +43,23 @@ end
 
     seed!(["f_20210808_v01.cdf", "f_20210808_v1.1.10.cdf", "f_20210808_v1.1.2.cdf",
         "other_20210808_v99.cdf", "f_20210809_v99.cdf"])
-    @test resolve_url("$(dir)f_20210808_v$(VERSION_FIELD).cdf") == "$(dir)f_20210808_v1.1.10.cdf"
+    @test resolve_url("$(dir)f_20210808_v*.cdf") == "$(dir)f_20210808_v1.1.10.cdf"
+
+    # MAVEN names a version and a revision; the revision decides only among the highest version.
+    seed!(["mvn_swi_l2_coarsearc3d_20200101_v01_r09.cdf", "mvn_swi_l2_coarsearc3d_20200101_v02_r00.cdf",
+        "mvn_swi_l2_coarsearc3d_20200101_v02_r01.cdf"])
+    @test resolve_url("$(dir)mvn_swi_l2_coarsearc3d_20200101_v*_r*.cdf") ==
+          "$(dir)mvn_swi_l2_coarsearc3d_20200101_v02_r01.cdf"
 
     seed!(["unrelated.cdf"])
-    @test isnothing(resolve_url("$(dir)f_20210808_v$(VERSION_FIELD).cdf"))
+    @test isnothing(resolve_url("$(dir)f_20210808_v*.cdf"))
 
     # A directory that could not be listed is a gap: nothing to resolve, but not a failure.
     seed!(nothing)
-    @test isnothing(resolve_url("$(dir)f_20210808_v$(VERSION_FIELD).cdf"))
+    @test isnothing(resolve_url("$(dir)f_20210808_v*.cdf"))
+
+    # Resolution reads one listing, so the directory it lists must be named outright.
+    @test_throws ArgumentError resolve_url("file:///data/*/f_20210808_v*.cdf")
 end
 
 @testitem "localize" begin
@@ -71,4 +84,20 @@ end
     # ...without stranding a partial download or destroying the copy already cached.
     @test readdir(dirname(want[1])) == ["f1.cdf", "f2.cdf", "f3.cdf"]
     @test read(want[1], String) == "data1"
+end
+
+@testitem "remotefiles" begin
+    using SpaceDataModel: FilePattern, remotefiles, _LISTINGS
+    using Dates
+
+    dir = "file://" * mktempdir() * "/"
+    _LISTINGS[dir] = Threads.@spawn ["f_20201001_v01.cdf", "f_20201001_v02.cdf", "f_20201003_v01.cdf"]
+    p = FilePattern("$(dir)f_{t:yyyymmdd}_v{version}.cdf")
+
+    # The 2nd is unpublished: a gap in the archive drops out rather than erroring
+    @test remotefiles(p, "2020-10-01", "2020-10-04"; version="*") ==
+          ["$(dir)f_20201001_v02.cdf", "$(dir)f_20201003_v01.cdf"]
+
+    hourly = FilePattern("file:///f_{t:yyyymmddHH}.cdf"; cadence=Hour(1))
+    @test length(remotefiles(hourly, Date(2020, 10, 1), Date(2020, 10, 2))) == 24
 end
