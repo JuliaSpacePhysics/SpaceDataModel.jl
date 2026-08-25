@@ -1,6 +1,11 @@
 using Documenter
 using SpaceDataModel
 
+let readme = read(joinpath(@__DIR__, "..", "README.md"), String)
+    readme = replace(readme, "](docs/src/" => "](", "](src/" => "](https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/blob/main/src/")
+    write(joinpath(@__DIR__, "src", "index.md"), readme)
+end
+
 DocMeta.setdocmeta!(SpaceDataModel, :DocTestSetup, :(using SpaceDataModel); recursive = true)
 
 makedocs(
@@ -10,6 +15,7 @@ makedocs(
     pages = [
         "Home" => "index.md",
         "Interface" => "interface.md",
+        "Metadata Schemas" => "schema_guide.md",
         "Coordinate Systems" => "coordinate.md",
         "API" => "api.md",
     ],

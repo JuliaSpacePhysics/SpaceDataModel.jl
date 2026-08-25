@@ -1,12 +1,8 @@
-# Metadata Schema Architecture
-# This module defines a mapping-based approach for converting metadata
-# from different data formats (ISTP, HAPI, Madrigal) to plot attributes.
-
 """
     MetadataSchema
 
-Abstract type for defining how metadata keys map to plot attributes.
-Each concrete schema defines the mapping rules for a specific metadata standard.
+Abstract type mapping semantic keys (`:name`, `:unit`, `:desc`, …) to metadata keys of a format. 
+Subtypes define `rules(schema)`. See `docs/src/schema_guide.md`.
 """
 abstract type MetadataSchema end
 
@@ -20,7 +16,7 @@ Base.getindex(schema::MetadataSchema, key) = get(rules(schema), key, nothing)
     SchemaDict(schema, data)
     SchemaDict(schema, pairs::Pair...)
 
-Dict tagged with a [`MetadataSchema`].
+Dict tagged with a `MetadataSchema`, recovered by [`get_schema`](@ref).
 """
 struct SchemaDict{S, K, V, D <: AbstractDict{K, V}} <: AbstractDict{K, V}
     schema::S
@@ -37,7 +33,8 @@ end
     get_schema(data)
 
 Get the metadata schema for `data`. Returns the tagged schema if metadata is
-a [`SchemaDict`], otherwise infers from content (e.g. `"CATDESC"` ⇒ ISTP).
+a [`SchemaDict`](@ref), otherwise infers from content (`"CATDESC"` ⇒ `ISTPSchema`),
+falling back to `DefaultSchema`.
 """
 get_schema(data) = _get_schema(getmeta(data))
 get_schema(f::Function, args...) = get_schema(f(args...))
