@@ -16,17 +16,11 @@ end
     @test all_concrete(SpaceDataModel)
 end
 
-@testitem "Project" begin
-    using SpaceDataModel: meta, name
-    project = Project(name = "Project Name", abbreviation = "Proj", links = "links")
-    instrument = Instrument(name = "Instrument Name")
-    dataset = DataSet(name = "Dataset Name")
-    push!(project, instrument, dataset)
-    push!(instrument, dataset)
-    @test name(project) == "Project Name"
-    @test length(project.instruments) == 1
-    @test length(project.datasets) == 1
-    @test length(instrument.datasets) == 1
+@testitem "Registry metadata" begin
+    using SpaceDataModel: name, getmeta
+    reg = Registry(name = "Mission Name", abbreviation = "M", links = "links")
+    @test name(reg) == "Mission Name"
+    @test getmeta(reg, "abbreviation") == "M"
 end
 
 @testitem "parse_datetime" begin

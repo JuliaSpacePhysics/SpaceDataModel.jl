@@ -11,6 +11,12 @@
     @test_throws ArgumentError p(Date(2020, 10, 1); probe="ela")
     @test endswith(p(Date(2020, 10, 1); probe="ela", version="03"), "_v03.cdf")
 
+    # One selector spelled two ways along the path: `|U`/`|L` case modifiers
+    two = FilePattern("{probe|U}/l2/{probe}_l2_{t:yyyymmdd}.cdf")
+    @test two(Date(2026, 4, 1); probe = "ts2") == "TS2/l2/ts2_l2_20260401.cdf"
+    @test_throws ArgumentError FilePattern("{probe|X}.cdf")
+    @test repr(two) == "FilePattern(\"{probe|U}/l2/{probe}_l2_{t:yyyymmdd}.cdf\")"
+
     # A Date carries no hour, but an hourly pattern must still render
     @test FilePattern("f_{t:yyyymmddHH}.cdf"; cadence=Hour(1))(Date(2020, 10, 1)) == "f_2020100100.cdf"
 

@@ -9,7 +9,15 @@ struct DatePart
 end
 DatePart(body::AbstractString, stop::Bool=false) = DatePart(body, _tokens(body), stop)
 
-const _Part = Union{String,DatePart,Symbol}
+# A keyword placeholder; `case` is 'U'/'L' for `{name|U}`/`{name|L}`, '-' for `{name}`.
+struct KeyPart
+    name::Symbol
+    case::Char
+end
+_apply(k::KeyPart, v) = (s = string(v); k.case == 'U' ? uppercase(s) : k.case == 'L' ? lowercase(s) : s)
+_kpstr(k::KeyPart) = k.case == '-' ? string(k.name) : string(k.name, '|', k.case)
+
+const _Part = Union{String,DatePart,KeyPart}
 
 """
     FilePattern(pattern; cadence=Day(1), kw...)
@@ -18,7 +26,8 @@ A template for the names of an archive's files, one per `cadence`.
 
 Text in `{}` is a placeholder: `{t:fmt}` renders the step's start through the `Dates` format `fmt`
 (`{t:mm-dd}`, `{t:yyyyjjj}` with `j` for day of year) and `{t1:fmt}` the last instant it covers, for
-archives naming both ends. A name without a format is a keyword. Everything else is literal.
+archives naming both ends. A name without a format is a keyword; `{name|U}` and `{name|L}` render
+its value upper- or lowercased. Everything else is literal.
 
 Keywords may be filled at construction, when specializing, or at the call; every one must be filled
 before a name is rendered. Filling a keyword with `"*"` leaves a wildcard for [`resolve_url`](@ref)
@@ -44,7 +53,7 @@ function FilePattern(pattern::AbstractString; cadence=Day(1), kw...)
 end
 
 (p::FilePattern)(; kw...) =
-    FilePattern(_merge(_Part[x isa Symbol && haskey(kw, x) ? string(kw[x]) : x for x in p.parts]), p.cadence)
+    FilePattern(_merge(_Part[x isa KeyPart && haskey(kw, x.name) ? _apply(x, kw[x.name]) : x for x in p.parts]), p.cadence)
 
 # Fuse adjacent literals so rendering walks fewer parts.
 function _merge(parts)
@@ -76,6 +85,16 @@ function _format(io::IO, d::DatePart, dt)
     end
 end
 
+# Fill `{key}` placeholders in a string
+function _format(pattern::AbstractString; kwargs...)
+    isempty(kwargs) && return String(pattern)
+    pairs = Iterators.flatten(
+        ("{$k}" => string(v), "{$k|U}" => uppercase(string(v)), "{$k|L}" => lowercase(string(v)))
+            for (k, v) in kwargs
+    )
+    return replace(pattern, pairs...)
+end
+
 # Whether one step's name equals the next's, which would make a whole range fetch a single file.
 function _repeats(parts, cadence)
     dates = [x for x in parts if x isa DatePart]
@@ -105,7 +124,14 @@ end
 function _placeholder(body, s)
     isempty(body) && throw(ArgumentError("empty placeholder '{}' in pattern $(repr(s))"))
     i = findfirst(':', body)
-    isnothing(i) && return Symbol(body)
+    if isnothing(i)
+        j = findfirst('|', body)
+        isnothing(j) && return KeyPart(Symbol(body), '-')
+        case = body[nextind(body, j):end]
+        case in ("U", "L") ||
+            throw(ArgumentError("unknown case modifier in {$body} of pattern $(repr(s)); use |U or |L"))
+        return KeyPart(Symbol(body[1:prevind(body, j)]), only(case))
+    end
     name = body[1:prevind(body, i)]
     name in ("t", "t1") ||
         throw(ArgumentError("unknown time {$name} in pattern $(repr(s)); use {t:…} or {t1:…}"))
@@ -121,11 +147,11 @@ function _render(p::FilePattern, t)
     for x in p.parts
         x isa String ? write(io, x) :
         x isa DatePart ? _format(io, x, x.stop ? stop : start) :
-        throw(ArgumentError("unfilled placeholder {$x} in pattern $(repr(_pattern(p)))"))
+        throw(ArgumentError("unfilled placeholder {$(_kpstr(x))} in pattern $(repr(_pattern(p)))"))
     end
     return String(take!(io))
 end
 
-_pattern(p::FilePattern) = join(x isa String ? x : x isa DatePart ? "{$(x.stop ? "t1" : "t"):$(x.body)}" : "{$x}" for x in p.parts)
+_pattern(p::FilePattern) = join(x isa String ? x : x isa DatePart ? "{$(x.stop ? "t1" : "t"):$(x.body)}" : "{$(_kpstr(x))}" for x in p.parts)
 
 Base.show(io::IO, p::FilePattern) = print(io, "FilePattern(", repr(_pattern(p)), p.cadence == Day(1) ? "" : "; cadence = $(p.cadence)", ")")

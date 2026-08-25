@@ -11,10 +11,10 @@ Return a local path for each URL, downloading files missing from the cache.
 
 Set the `SPACE_DATA_DIR` environment variable to override the default cache directory.
 
-`update` is `false`, `true`, or a `Period` (refetch if the local copy is older).
+Set `update = true` to force re-download, or a `Period` to refetch if the local copy is older.
 """
 localize(urls::AbstractVector; ntasks=4, kw...) =
-    asyncmap(url -> localize(url; kw...), urls; ntasks)
+    convert(Vector{String}, asyncmap(url -> localize(url; kw...), urls; ntasks))
 
 function localize(url; dir=datadir(), update=false)
     _stale(_, update::Bool) = update
@@ -55,28 +55,46 @@ function resolve_url(url; refresh=false)
 end
 
 """
-    remotefiles(p::FilePattern, t0, t1; refresh=false, kw...) :: Vector{String}
+    remotefiles(p::FilePattern, t0, t1; refresh=false, version="*", kw...) :: Vector{String}
 
 URLs of the files over `[t0, t1)`. Steps with no published file are dropped
 rather than an error, since a gap in an archive is normal.
 
-`refresh=true` bypasses memoized directory listings.
+Keywords fill `p`'s placeholders; `version` defaults to the `*` wildcard, picking the highest
+listed. `refresh=true` bypasses memoized directory listings.
 """
-function remotefiles(p::FilePattern, t0, t1; refresh=false, ntasks=8, kw...)
-    q = p(; kw...)
+function remotefiles(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
+    q = p(; version, kw...)
     resolved = asyncmap(t -> resolve_url(q(t); refresh), _stepstarts(p, t0, t1); ntasks)
     return String[u for u in resolved if !isnothing(u)]
 end
 
+function available(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
+    q = p(; version, kw...)
+    steps = _stepstarts(p, t0, t1)
+    resolved = asyncmap(t -> resolve_url(q(t); refresh), steps; ntasks)
+    return DateTime[t for (t, u) in zip(steps, resolved) if !isnothing(u)]
+end
+
+_time(t::AbstractString) = parse_datetime(t)
+_time(t::Date) = DateTime(t)
+_time(t) = t
+
 # Starts of the cadence-aligned file bins covering `[t0, t1)`.
 function _stepstarts(p::FilePattern, t0, t1)
-    _time(t::AbstractString) = parse_datetime(t)
-    _time(t::Date) = DateTime(t)
-    _time(t) = t
-
     a, b = _time(t0), _time(t1)
     a < b || throw(ArgumentError("t1 must be after t0"))
     return floor(a, p.cadence):p.cadence:(ceil(b, p.cadence)-p.cadence)
+end
+
+_hint() = "`available(ds, t0, t1)` lists the steps this archive does publish."
+
+@noinline function _no_files(p::FilePattern, t0, t1; version="*")
+    n = length(_stepstarts(p, t0, t1))
+    throw(ArgumentError("""
+        no files published over $t0 .. $t1 ($n steps of $(p.cadence)) for
+          $(_pattern(p(; version)))
+        $(_hint())"""))
 end
 
 const _LISTINGS = Dict{String,Task}()

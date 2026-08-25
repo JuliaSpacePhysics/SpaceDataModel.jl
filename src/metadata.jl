@@ -10,8 +10,6 @@ always returns `false`.
 """
 struct NoMetadata end
 
-const NoData = NoMetadata
-
 Base.keys(::NoMetadata) = ()
 Base.values(::NoMetadata) = ()
 Base.iterate(::NoMetadata) = nothing
