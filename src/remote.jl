@@ -24,33 +24,59 @@ function localize(url; dir=datadir(), update=false)
     return isfile(path) && !_stale(path, update) ? path : _download_atomic(url, path)
 end
 
-const VERSION_FIELD = "{version}"
-
 """
     resolve_url(url; refresh=false)
 
-Concrete URL for `url`, where $VERSION_FIELD is replaced with the highest version found in the directory.
+Concrete URL for `url`, where each `*` in the file name is replaced with the highest version field
+published in the directory, or `nothing` if the directory lists no such file.
 
-The field matches any width and any separator (e.g., `v03`, `v03.06`, `v03_01`, `v1.1.10`).
+A field matches any width and any separator (e.g., `v03`, `v03.06`, `v03_01`, `v1.1.10`). 
+A name may carry more than one, as MAVEN's `…_v02_r00.cdf` does; fields rank left to right.
 """
 function resolve_url(url; refresh=false)
-    occursin(VERSION_FIELD, url) || return url
+    occursin('*', url) || return url
     name = basename(url)
     dir = url[1:(end-length(name))]
-    i = findfirst(VERSION_FIELD, name)
-    pre, post = name[1:prevind(name, first(i))], name[nextind(name, last(i)):end]
+    occursin('*', dir) &&
+        throw(ArgumentError("wildcard outside the file name of $(repr(url)); a directory cannot be listed unless it is named"))
+    re = _name_regex(name)
     names = tryreaddir(dir; refresh)
     isnothing(names) && return nothing
     best, bestkey = nothing, nothing
     for n in names
-        v = _version_field(n, pre, post)
-        isnothing(v) && continue
-        key = _numkey(v)
+        m = match(re, n)
+        isnothing(m) && continue
+        key = mapreduce(_numkey, vcat, m.captures)
         if isnothing(bestkey) || key > bestkey
             best, bestkey = n, key
         end
     end
     return isnothing(best) ? nothing : dir * best
+end
+
+"""
+    remotefiles(p::FilePattern, t0, t1; refresh=false, kw...) :: Vector{String}
+
+URLs of the files over `[t0, t1)`. Steps with no published file are dropped
+rather than an error, since a gap in an archive is normal.
+
+`refresh=true` bypasses memoized directory listings.
+"""
+function remotefiles(p::FilePattern, t0, t1; refresh=false, ntasks=8, kw...)
+    q = p(; kw...)
+    resolved = asyncmap(t -> resolve_url(q(t); refresh), _stepstarts(p, t0, t1); ntasks)
+    return String[u for u in resolved if !isnothing(u)]
+end
+
+# Starts of the cadence-aligned file bins covering `[t0, t1)`.
+function _stepstarts(p::FilePattern, t0, t1)
+    _time(t::AbstractString) = parse_datetime(t)
+    _time(t::Date) = DateTime(t)
+    _time(t) = t
+
+    a, b = _time(t0), _time(t1)
+    a < b || throw(ArgumentError("t1 must be after t0"))
+    return floor(a, p.cadence):p.cadence:(ceil(b, p.cadence)-p.cadence)
 end
 
 const _LISTINGS = Dict{String,Task}()
@@ -85,15 +111,10 @@ function _index_names(html)
     )
 end
 
-function _version_field(name, pre, post)
-    startswith(name, pre) || return nothing
-    v = chopprefix(name, pre)
-    endswith(v, post) || return nothing
-    v = chopsuffix(v, post)
-    (isempty(v) || !isdigit(first(v))) && return nothing
-    all(c -> isdigit(c) || c == '.' || c == '_' || c == '-', v) || return nothing
-    return v
-end
+# `*` stands for a version field, so it matches digits and the separators archives write between
+# them -- not `[^/]*`, which would let a sibling like `…_v01_beta.cdf` answer for `…_v*.cdf`.
+_name_regex(name) = Regex("^" * join((_escape(s) for s in split(name, '*')), "([0-9][0-9._-]*)") * "\\z")
+_escape(s) = replace(s, r"[\\^$.|?*+()\[\]{}]" => s"\\\0")
 
 # Ordering on the version's integer fields so `v1.1.10` outranks `v1.1.2`.
 _numkey(v) = Int[parse(Int, m.match) for m in eachmatch(r"\d+", v)]

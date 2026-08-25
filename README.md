@@ -46,3 +46,19 @@ get_schema(data)
 ```
 
 See [`docs/src/schema_guide.md`](docs/src/schema_guide.md) for lookup patterns and extending to new formats.
+
+## Remote Files
+
+Describe an archive's file names with a template, then resolve and download by time range.
+
+```julia
+using SpaceDataModel: FilePattern, remotefiles, localize
+
+p = FilePattern("https://data.elfin.ucla.edu/{probe}/{level}/fgm/survey/{t:yyyy}/{probe}_{level}_fgs_{t:yyyymmdd}_v{version}.cdf")
+fgs = p(; probe="ela", level="l1")              # fill keywords now or at the call
+fgs("2020-10-01"; version="03")                 # one file name
+urls = remotefiles(fgs, "2020-10-01", "2020-10-03"; version="*")  # "*" picks the latest version listed
+paths = localize(urls)                          # cached local copies
+```
+
+Placeholder syntax and cadence: docstring of `FilePattern` in [`src/filepattern.jl`](src/filepattern.jl); fetching in [`src/remote.jl`](src/remote.jl).
