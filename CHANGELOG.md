@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [0.3.0] - In Development
+## [0.3.0] - 2026-08-27
 
 Model-the-contract redesign. Breaking throughout.
 
@@ -27,8 +27,7 @@ Model-the-contract redesign. Breaking throughout.
   `AbstractModel` > `AbstractProject`/`AbstractInstrument`/`AbstractProduct` >
   `AbstractDataSet`.
 - `DataSet`, `LDataSet`, `format_pattern`: subsumed by `Dataset` and its source.
-- The `meta` alias (use `getmeta`), `NoData` alias, metadata access via
-  `var["key"]`/`get(var, key)`/`Base.get` on model types (use `getmeta`), `push!`/`insert!` on containers.
+- The `NoData` alias, metadata access via `var["key"]`/`get(var, key)`/`Base.get` on model types (use `getmeta`).
 
 ## [0.2.0] - 2025-08-14
 
