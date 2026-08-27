@@ -9,6 +9,8 @@ struct DatePart
 end
 DatePart(body::AbstractString, stop::Bool=false) = DatePart(body, _tokens(body), stop)
 
+Base.:(==)(a::DatePart, b::DatePart) = eqfields(a, b)
+
 # A keyword placeholder; `case` is 'U'/'L' for `{name|U}`/`{name|L}`, '-' for `{name}`.
 struct KeyPart
     name::Symbol
@@ -45,6 +47,8 @@ struct FilePattern{P<:Period}
     cadence::P
 end
 
+Base.:(==)(a::FilePattern, b::FilePattern) = eqfields(a, b)
+
 function FilePattern(pattern::AbstractString; cadence=Day(1), kw...)
     parts = _parse_pattern(pattern)
     _repeats(parts, cadence) &&
@@ -52,8 +56,9 @@ function FilePattern(pattern::AbstractString; cadence=Day(1), kw...)
     return FilePattern(parts, cadence)(; kw...)
 end
 
-(p::FilePattern)(; kw...) =
-    FilePattern(_merge(_Part[x isa KeyPart && haskey(kw, x.name) ? _apply(x, kw[x.name]) : x for x in p.parts]), p.cadence)
+_bind(p::FilePattern, fills) =
+    FilePattern(_merge(_Part[x isa KeyPart && haskey(fills, x.name) ? _apply(x, fills[x.name]) : x for x in p.parts]), p.cadence)
+(p::FilePattern)(; kw...) = _bind(p, kw)
 
 # Fuse adjacent literals so rendering walks fewer parts.
 function _merge(parts)
@@ -85,14 +90,25 @@ function _format(io::IO, d::DatePart, dt)
     end
 end
 
-# Fill `{key}` placeholders in a string
-function _format(pattern::AbstractString; kwargs...)
-    isempty(kwargs) && return String(pattern)
-    pairs = Iterators.flatten(
-        ("{$k}" => string(v), "{$k|U}" => uppercase(string(v)), "{$k|L}" => lowercase(string(v)))
-            for (k, v) in kwargs
-    )
-    return replace(pattern, pairs...)
+# Fill `{key}`, `{key|U}` and `{key|L}` placeholders in a string; unfilled ones stay as written.
+# Delimiters are ASCII, so byte offsets around them are valid indices in any UTF-8 string.
+function _format(pattern::AbstractString, fills)
+    isempty(fills) && return String(pattern)
+    io = IOBuffer(sizehint=ncodeunits(pattern))
+    i = j = 1
+    while (j = findnext('{', pattern, j)) !== nothing
+        k = findnext('}', pattern, j)
+        isnothing(k) && break
+        b = min(something(findnext('|', pattern, j), k), k)
+        key, case = Symbol(SubString(pattern, j + 1, b - 1)), SubString(pattern, b + 1, k - 1)
+        start, j = j, k + 1
+        haskey(fills, key) && case in ("", "U", "L") || continue
+        s = string(fills[key])
+        print(io, SubString(pattern, i, start - 1), case == "U" ? uppercase(s) : case == "L" ? lowercase(s) : s)
+        i = j
+    end
+    print(io, SubString(pattern, i))
+    return String(take!(io))
 end
 
 # Whether one step's name equals the next's, which would make a whole range fetch a single file.

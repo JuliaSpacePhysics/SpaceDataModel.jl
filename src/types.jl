@@ -4,19 +4,19 @@
 A relation of [`Dataset`](@ref)s: rows sharing a selector vocabulary. 
 A mission, an instrument, or any other grouping is a `Registry`.
 """
-struct Registry{D,MD,K}
+struct Registry{D,MD}
     name::String
     datasets::D
     metadata::MD
-    defaults::K
+    defaults::Selectors
 end
 
 function Registry(; name="", datasets=[], metadata=NoMetadata(), defaults=(;), kwargs...)
-    Registry(name, datasets, merge(metadata, kwargs), defaults)
+    Registry(name, datasets, merge(metadata, kwargs), Selectors(defaults))
 end
 Registry(name, datasets; kw...) = Registry(; name, datasets, kw...)
 
-Base.getindex(reg::Registry; kw...) = select(reg; kw...)
+Base.getindex(reg::Registry; kw...) = select(reg, Selectors(kw))
 
 # https://spase-group.org/data/model/spase-2.7.0/spase-2_7_0_xsd.html#http___www.spase-group.org_data_schema_Spase_Catalog
 # Listing of events or observational notes.

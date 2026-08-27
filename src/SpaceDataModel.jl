@@ -32,10 +32,11 @@ function available end
 include("utils.jl")
 include("metadata.jl")
 include("filepattern.jl");  export FilePattern
+include("selectors.jl")
 include("types.jl")
+include("select.jl")
 include("dataset.jl")
 include("product.jl")
-include("select.jl")
 include("variable_interface.jl")
 const getdim = dim
 include("variable.jl")
