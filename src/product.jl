@@ -1,41 +1,39 @@
-# References:
-# https://github.com/MakieOrg/AlgebraOfGraphics.jl/blob/master/src/algebra/layer.jl
+"""
+    Product(dataset, variable; metadata=NoMetadata(), kw...)
 
-struct Product{A,F,MD} <: AbstractProduct
-    data::A
-    transformation::F
-    name::Union{String,Symbol}
+A `variable` of a `dataset`: with optional layered metadata (e.g. a plot label override).
+"""
+struct Product{D,V,MD}
+    dataset::D
+    variable::V
     metadata::MD
 end
 
-function Product(data::A, transformation=identity; name="", metadata=NoMetadata(), kwargs...) where {A}
-    new_meta = merge(metadata, kwargs)
-    Product(data, transformation, name, new_meta)
+Product(dataset, variable; metadata=NoMetadata(), kwargs...) =
+    Product(dataset, variable, merge(metadata, kwargs))
+
+Base.parent(p::Product) = p.dataset
+name(p::Product) = getmeta(p, "name", p.variable)
+getdata(p::Product, args...; kwargs...) = getdata(parent(p), args...; kwargs...)[p.variable]
+available(p::Product, args...; kwargs...) = available(parent(p), args...; kwargs...)
+
+
+"""
+    Transformed(f, source; metadata=NoMetadata(), kw...)
+
+A derived product: [`getdata`](@ref) materializes `source` and applies `f` to the result.
+"""
+struct Transformed{F,S,MD}
+    f::F
+    source::S
+    metadata::MD
 end
 
-Base.parent(p::Product) = p.data
-func(::AbstractProduct) = identity
-func(p::Product) = p.transformation
+Transformed(f, source; metadata=NoMetadata(), kwargs...) =
+    Transformed(f, source, merge(metadata, kwargs))
 
-(p::AbstractProduct)(args...; kwargs...) = func(p)(parent(p), args...; kwargs...)
+getdata(t::Transformed, args...; kwargs...) = t.f(getdata(t.source, args...; kwargs...))
+available(t::Transformed, args...; kwargs...) = available(t.source, args...; kwargs...)
 
-"""Create a new product with the composed function"""
-∘(f, p::AbstractProduct) = setproperties(p, (; transformation = f ∘ func(p)))
-∘(p::AbstractProduct, f) = setproperties(p, (; transformation = func(p) ∘ f))
-
-# Allow chaining of transformations with multiple products
-∘(g::AbstractProduct, f::AbstractProduct) = setproperties(g, (; transformation = func(g) ∘ func(f)))
-
-function set(p::AbstractProduct; name=nothing, data=nothing, transformation=nothing, metadata=nothing, kwargs...)
-    isempty(kwargs) || (metadata = merge(something(metadata, p.metadata), kwargs))
-    patch = NamedTuple(k => v for (k, v) in pairs((; name, data, transformation, metadata)) if !isnothing(v))
-    return isempty(patch) ? p : setproperties(p, patch)
-end
-
-set(p::Product, data, transformation=nothing; kwargs...) = set(p; data, transformation, kwargs...)
-
-function Base.show(io::IO, p::Product)
-    n = name(p)
-    isempty(n) ? print(io, parent(p)) : print(io, n)
-    func(p) !== identity && print(io, " [", func(p), "]")
-end
+∘(f, s::Union{Dataset,Product}) = Transformed(f, s)
+∘(f, t::Transformed) = Transformed(f ∘ t.f, t.source, t.metadata)

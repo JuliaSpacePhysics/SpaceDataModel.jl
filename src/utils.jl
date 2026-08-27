@@ -8,17 +8,6 @@ macro getproperty(value, names::Expr, default = nothing)
     end
 end
 
-# https://github.com/JuliaLang/julia/issues/54454
-_nth(itr, n) = begin
-    y = iterate(Base.Iterators.drop(itr, n - 1))
-    isnothing(y) ? throw(BoundsError(itr, n)) : first(y)
-end
-
-function format_pattern(pattern; kwargs...)
-    pairs = ("{$k}" => v for (k, v) in kwargs)
-    return replace(pattern, pairs...)
-end
-
 # https://github.com/rafaqz/DimensionalData.jl/blob/main/src/Dimensions/show.jl#L5
 function colors(i)
     colors = [209, 32, 81, 204, 249, 166, 37]

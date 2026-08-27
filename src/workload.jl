@@ -1,18 +1,11 @@
 function workload()
     io = IOContext(IOBuffer(), :color => true)
-    var1 = [1, 2, 3]
-    var2 = (4, 5, 6)
-    dataset = DataSet("Dataset Name", [var1, var2])
-    project = Project(name = "Project Name", abbreviation = "Proj", links = "links")
-    instrument = Instrument(name = "Instrument Name")
-    var = DataVariable([1, 2, 3], Dict("name" => "var"))
-    var2 = DataVariable([1, 2, 3], (; name = "var2"))
-    show(io, MIME"text/plain"(), var)
-    show(io, MIME"text/plain"(), var2)
-    show(io, MIME"text/plain"(), dataset)
-    show(io, MIME"text/plain"(), project)
-    push!(project, instrument, dataset)
-    push!(instrument, dataset)
-    push!(dataset, var)
+    pattern = FilePattern("https://example.com/{probe|U}/{probe}_l1_{t:yyyymmdd}_v{version}.cdf")
+    ds = Dataset("demo", Archive(pattern); selectors = (; probe = ("a", "b")))
+    reg = Registry("reg", [ds]; defaults = (; probe = "a"))
+    show(io, MIME"text/plain"(), ds)
+    show(io, MIME"text/plain"(), reg)
+    show(io, MIME"text/plain"(), ds["var1"])
+    reg[probe = "b"]
     return
 end

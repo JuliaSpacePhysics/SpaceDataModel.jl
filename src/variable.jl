@@ -7,7 +7,7 @@ Optional:
 
 * `times(v)`: the timestamps of the variable
 * `units(v)`: the units of the variable
-* `meta(v)`: the metadata of the variable
+* `getmeta(v)`: the metadata of the variable
 * `name(v)`: the name of the variable
 * `dim(v, i)`: the `i`-th dimension of the variable
 * `dim(v, name)`: the dimension named `name` of the variable
@@ -61,7 +61,7 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractData
     isnothing(u) || println(io, "  Units: ", u)
     println(io, "  Size: ", size(var))
     println(io, "  Memory Usage: ", Base.format_bytes(Base.summarysize(var)))
-    if (m = meta(var)) |> _is_valid
+    if (m = getmeta(var)) |> _is_valid
         print(io, "  Metadata:")
         _println_value(io, m)
     end

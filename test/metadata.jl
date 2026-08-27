@@ -38,20 +38,13 @@ end
     @test Dict(pairs(nm)) == Dict()
 end
 
-@testitem "NoMetadata in Product Context" begin
-    using SpaceDataModel: NoMetadata, Product
+@testitem "NoMetadata in model constructors" begin
+    using SpaceDataModel: NoMetadata
 
-    # Test that NoMetadata works correctly in Product constructor
-    nm = NoMetadata()
-
-    # When kwargs are provided, NoMetadata gets merged into Dict
-    p2 = Product([1, 2, 3]; metadata = nm, extra_key = "value")
-    @test p2.metadata isa AbstractDict
-    @test p2.metadata[:extra_key] == "value"
-
-    # Test default behavior
-    p3 = Product([1, 2, 3])
-    @test p3.metadata isa NoMetadata
+    # Extra kwargs merge NoMetadata into a Dict; without them it stays NoMetadata.
+    ds = Dataset("d", nothing; metadata = NoMetadata(), extra_key = "value")
+    @test ds.metadata isa AbstractDict
+    @test ds.metadata[:extra_key] == "value"
 end
 
 @testitem "OverlayDict" begin

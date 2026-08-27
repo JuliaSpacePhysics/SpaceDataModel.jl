@@ -51,11 +51,11 @@ _get(x::AbstractDict, key, default) = key isa keytype(x) ? get(x, key, default) 
 
 Get metadata value associated with `key` for object `x`, or `default` if `key` is not present.
 """
-getmeta(x, key, default = nothing) = _get(meta(x), key, default)
+getmeta(x, key, default = nothing) = _get(getmeta(x), key, default)
 
 const meta = getmeta # not exported (to be removed)
 
-units(v) = get(v, "units", nothing)
+units(v) = getmeta(v, "units")
 
 function unit(v)
     us = units(v)
@@ -82,7 +82,7 @@ Throws an error if the metadata is not mutable. Use `setmeta` for immutable meta
 function setmeta! end
 
 function setmeta!(x, args...; kw...)
-    m = meta(x)
+    m = getmeta(x)
     ismutable(m) || error("Metadata is not mutable, use `setmeta` instead")
     set!(m, args...; kw...)
     return x
@@ -97,6 +97,6 @@ Update metadata for object `x` for key `key` to have value `value` and return `x
 function setmeta end
 
 function setmeta(x, args::Pair...; kw...)
-    return setproperties(x, (; metadata = _merge(meta(x), Dict(args...), kw)))
+    return setproperties(x, (; metadata = _merge(getmeta(x), Dict(args...), kw)))
 end
-setmeta(x, dict::AbstractDict) = setproperties(x, (; metadata = _merge(meta(x), dict)))
+setmeta(x, dict::AbstractDict) = setproperties(x, (; metadata = _merge(getmeta(x), dict)))
