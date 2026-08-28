@@ -1,48 +1,38 @@
-_members(d) = (d,)
-_members(d::Union{Tuple,AbstractArray,AbstractSet}) = d
-
 _datasets(reg) = values(reg.datasets)
 
 """Selector names any of the registry's datasets carries."""
 function vocabulary(reg::Registry)
     names = Symbol[]
-    for ds in _datasets(reg), key in keys(selectors(ds))
-        k = key::Symbol
+    for ds in _datasets(reg), k in keys(selectors(ds))
         k in names || push!(names, k)
     end
     return names
 end
 
-# Domain membership is `==`; a Symbol answers for its String spelling.
-_eq(m, v) = m == v
-_eq(m::AbstractString, v::Symbol) = m == String(v)
+_matches(ds, k, v) = (d = get(selectors(ds), k, nothing); !isnothing(d) && _member(d, string(v)))
 
-_member(::Type{Any}, ::Any) = true
-_member(d, v) = any(m -> _eq(m, v), _members(d))
-
-_matches(ds, k, v) = (sel=selectors(ds); haskey(sel, k) && _member(sel[k], v))
-
-_supplied_match(ds, kw) = all(_matches(ds, k, v) for (k, v) in pairs(kw))
+_supplied_match(ds, sel) = all(_matches(ds, k, v) for (k, v) in sel)
 
 # A default constrains only datasets that carry it and only when not overridden.
-_defaults_match(ds, defaults, kw) =
-    all(!haskey(selectors(ds), k) || _matches(ds, k, v) for (k, v) in pairs(defaults) if !haskey(kw, k))
+_defaults_match(ds, defaults, sel) =
+    all(!haskey(selectors(ds), k) || _matches(ds, k, v) for (k, v) in defaults if !haskey(sel, k))
 
-_check_vocabulary(reg, kw) = begin
-    vocab = vocabulary(reg)
-    unknown = setdiff(keys(kw), vocab)
-    isempty(unknown) || _unknown_selectors(reg, unknown, vocab)
-end
+_check_vocabulary(reg, sel) =
+    for k in keys(sel)
+        any(ds -> haskey(selectors(ds), k), _datasets(reg)) || _unknown_selectors(reg, keys(sel))
+    end
 
 """
     filter(reg::Registry; selectors...)
 
 The rows of `reg` every supplied selector matches, each with the matched columns pinned.
 """
-function Base.filter(reg::Registry; kw...)
-    _check_vocabulary(reg, kw)
-    rows = [pin(ds, kw) for ds in _datasets(reg) if _supplied_match(ds, kw)]
-    return setproperties(reg, (; datasets=rows, defaults=merge(reg.defaults, kw)))
+Base.filter(reg::Registry; kw...) = filter(reg, Selectors(kw))
+
+function Base.filter(reg::Registry, sel::Selectors)
+    _check_vocabulary(reg, sel)
+    rows = [pin(ds, sel) for ds in _datasets(reg) if _supplied_match(ds, sel)]
+    return setproperties(reg, (; datasets=rows, defaults=merge(reg.defaults, sel)))
 end
 
 """
@@ -51,17 +41,26 @@ end
 The *one* dataset of `reg` every supplied selector matches, with omitted selectors filled from
 `reg.defaults` where the dataset carries them.
 """
-function select(reg::Registry; kw...)
-    _check_vocabulary(reg, kw)
-    cands = filter(ds -> _supplied_match(ds, kw) && _defaults_match(ds, reg.defaults, kw), _datasets(reg))
-    length(cands) == 1 || _no_single_dataset(reg, kw, cands)
-    return pin(only(cands), merge(reg.defaults, kw); complete=true)
+select(reg::Registry; kw...) = select(reg, Selectors(kw))
+
+function select(reg::Registry, sel::Selectors)
+    _check_vocabulary(reg, sel)
+    # Lazy so the happy path neither allocates a candidate list nor walks past the second match.
+    cands = Iterators.filter(ds -> _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel), _datasets(reg))
+    hit = iterate(cands)
+    (isnothing(hit) || !isnothing(iterate(cands, hit[2]))) && _no_single_dataset(reg, sel)
+    return pin(hit[1], merge(reg.defaults, sel); complete=true)
 end
 
-_pinned(d) = d !== Any && length(_members(d)) == 1
+_pinned(d) = d isa String
 
-_pin(::Type{Any}, v) = v
-_pin(d, v) = _members(d)[findfirst(m -> _eq(m, v), _members(d))]
+function _pin(ds, k, d, values, complete)
+    _pinned(d) && return k => d
+    haskey(values, k) || (complete && _unpinnable(ds, k, d); return k => d)
+    v = string(values[k])
+    _member(d, v) || throw(ArgumentError("$(name(ds)): $v not in domain of $k, $(_show_domain(d))"))
+    return k => v
+end
 
 """
     pin(ds, values; complete=false)
@@ -72,31 +71,28 @@ one resolves.
 """
 function pin(ds, values; complete::Bool=false)
     sel = selectors(ds)
-    all(_pinned, sel) && return ds
-    pinned = map(keys(sel), sel) do k, d
-        _pinned(d) && return only(_members(d))
-        haskey(values, k) && return _pin(d, values[k])
-        complete && throw(ArgumentError("$(name(ds)): selector $k must be given; domain $(_show_domain(d))"))
-        return d
-    end
-    nt = NamedTuple{keys(sel)}(pinned)
-    fills = NamedTuple(k => v for (k, v) in pairs(nt) if _pinned(sel[k]) || haskey(values, k))
-    return setproperties(ds, (; name=_format(ds.name; fills...), selectors=nt, source=bind(ds.source; fills...)))
+    all(p -> _pinned(p.second), sel) && return ds
+    pinned = Selectors(Pair{Symbol,Domain}[_pin(ds, k, d, values, complete) for (k, d) in sel])
+    fills = Selectors(Pair{Symbol,Domain}[p for p in pinned if _pinned(p.second)])
+    return setproperties(ds, (; name=_format(ds.name, fills), selectors=pinned, source=bind(ds.source, fills)))
 end
 
-_show_domain(d) = d === Any ? "*" : _pinned(d) ? string(only(_members(d))) : "{" * join(_members(d), ",") * "}"
-_show_selectors(nt) = join(("$k=$(_show_domain(v))" for (k, v) in pairs(nt)), " ")
+@noinline _unpinnable(ds, k, d) =
+    throw(ArgumentError("$(name(ds)): selector $k must be given; domain $(_show_domain(d))"))
 
-@noinline function _unknown_selectors(reg, unknown, vocab)
+@noinline function _unknown_selectors(reg, supplied)
+    vocab = vocabulary(reg)
+    unknown = setdiff(supplied, vocab)
     label = length(unknown) == 1 ? "selector" : "selectors"
     throw(ArgumentError("$(reg.name): unknown $label $(join(unknown, ", ")); known: $(join(vocab, ", "))"))
 end
 
-@noinline function _no_single_dataset(reg, kw, cands)
+@noinline function _no_single_dataset(reg, sel)
+    cands = [ds for ds in _datasets(reg) if _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel)]
     listed = isempty(cands) ? _datasets(reg) : cands
     n = isempty(cands) ? "no dataset" : "$(length(cands)) datasets"
     throw(ArgumentError("""
-        $(reg.name): $n for $(_show_selectors(kw)) (defaults $(_show_selectors(reg.defaults))).
+        $(reg.name): $n for $(sel), default selectors $(reg.defaults).
         Available:
-        $(join(("  $(name(ds)): $(_show_selectors(selectors(ds)))" for ds in listed), "\n"))"""))
+        $(join(("  $(name(ds)): $(selectors(ds))" for ds in listed), "\n"))"""))
 end

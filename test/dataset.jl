@@ -7,25 +7,26 @@
     open = Dataset("open", Archive(FilePattern("{rate}_{level}_{t:yyyymmdd}.cdf")); selectors=(; rate="raw", level=Any))
     reg = Registry("MGF", [hz, daily, open]; defaults=(; rate="8sec", probe="ts1", coord="dsi"))
 
+    @test sprint(show, open.selectors) == "(rate = \"raw\", level = Any)"
     @test vocabulary(reg) == [:probe, :rate, :coord, :level]
     # A fully pinned dataset comes back as is
     @test reg[] === daily
     # A default the dataset does not carry is ignored; a supplied selector it lacks excludes it.
     ds = reg[rate="64hz"]
-    @test ds.name == "hz_64hz"
+    @test reg[rate = "64hz"] == Dataset("hz_64hz", Archive(FilePattern("TS1/ts1_64hz_dsi_{t:yyyymmdd}.cdf")); selectors=(; probe="ts1", rate="64hz", coord="dsi"))
     @test ds.source.pattern(Date(2017, 3, 27)) == "TS1/ts1_64hz_dsi_20170327.cdf"
     @test_throws ArgumentError reg[coord="gse"]
-    @test reg[rate="raw", level="l2"].selectors == (; rate="raw", level="l2")
+    @test NamedTuple(reg[rate="raw", level="l2"].selectors) == (; rate="raw", level="l2")
     @test_throws ArgumentError reg[rate="raw"]
     @test_throws ArgumentError reg[rate="1hz"]
-    @test reg[rate="64hz", probe=:ts2].selectors.probe == "ts2"
+    @test NamedTuple(reg[rate="64hz", probe=:ts2].selectors).probe == "ts2"
     # A spelling outside the domain is rejected, not coerced.
     @test_throws ArgumentError reg[rate="64hz", probe="TS2"]
 
     # Filtering narrows and pins but never throws on an unmatched value.
     f = filter(reg; probe="ts2")
     @test [ds.name for ds in f.datasets] == ["hz_{rate}"]
-    @test selectors(only(f.datasets)).probe == "ts2"
+    @test NamedTuple(selectors(only(f.datasets))).probe == "ts2"
     @test isempty(filter(reg; rate="1hz").datasets)
 end
 

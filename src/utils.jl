@@ -1,3 +1,5 @@
+eqfields(a::T, b::T) where {T} = all(i -> getfield(a, i) == getfield(b, i), 1:nfields(a))
+
 macro getproperty(value, names::Expr, default = nothing)
     tests = map(names.args) do name
         :(hasproperty($(esc(value)), $name) && (return getproperty($(esc(value)), $name)))
