@@ -3,14 +3,14 @@
     using Dates
     hz = Dataset("hz_{rate}", Archive(FilePattern("{probe|U}/{probe}_{rate}_{coord}_{t:yyyymmdd}.cdf"));
         selectors=(; probe=("ts1", "ts2"), rate=("64hz", "128hz"), coord=("dsi", "gse")))
-    daily = Dataset("daily", Archive(FilePattern("8sec_{t:yyyymmdd}.cdf")); selectors=(; rate="8sec"))
+    daily = Dataset("daily_{rate}", Archive(FilePattern("{rate}_{t:yyyymmdd}.cdf")); selectors=(; rate="8sec"))
     open = Dataset("open", Archive(FilePattern("{rate}_{level}_{t:yyyymmdd}.cdf")); selectors=(; rate="raw", level=Any))
     reg = Registry("MGF", [hz, daily, open]; defaults=(; rate="8sec", probe="ts1", coord="dsi"))
 
     @test sprint(show, open.selectors) == "(rate = \"raw\", level = Any)"
     @test vocabulary(reg) == [:probe, :rate, :coord, :level]
-    # A fully pinned dataset comes back as is
-    @test reg[] === daily
+    @test reg[] == Dataset("daily_8sec", Archive(FilePattern("8sec_{t:yyyymmdd}.cdf")); selectors=(; rate="8sec"))
+    @test reg[].source.pattern(Date(2017, 3, 27)) == "8sec_20170327.cdf"
     # A default the dataset does not carry is ignored; a supplied selector it lacks excludes it.
     ds = reg[rate="64hz"]
     @test reg[rate = "64hz"] == Dataset("hz_64hz", Archive(FilePattern("TS1/ts1_64hz_dsi_{t:yyyymmdd}.cdf")); selectors=(; probe="ts1", rate="64hz", coord="dsi"))

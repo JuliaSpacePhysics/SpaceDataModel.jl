@@ -71,7 +71,9 @@ one resolves.
 """
 function pin(ds, values; complete::Bool=false)
     sel = selectors(ds)
-    all(p -> _pinned(p.second), sel) && return ds
+    # Selectors fixed at construction are still unbound in the name and source, so an
+    # already-pinned dataset must be rebuilt too.
+    isempty(sel) && return ds
     pinned = Selectors(Pair{Symbol,Domain}[_pin(ds, k, d, values, complete) for (k, d) in sel])
     fills = Selectors(Pair{Symbol,Domain}[p for p in pinned if _pinned(p.second)])
     return setproperties(ds, (; name=_format(ds.name, fills), selectors=pinned, source=bind(ds.source, fills)))
