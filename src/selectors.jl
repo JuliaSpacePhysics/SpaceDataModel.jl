@@ -8,9 +8,9 @@ struct Selectors <: AbstractDict{Symbol,Domain}
     Selectors(pairs::Vector{Pair{Symbol,Domain}}) = new(pairs)  # keeps `Selectors(kv)` from overwriting the convert fallback
 end
 
-_domain(d) = string(d)
+_domain(d) = String(string(d))   # `string` passes any AbstractString (SubString, InlineStrings) through unchanged
 _domain(::Type{Any}) = Any
-_domain(d::Union{Tuple,AbstractArray,AbstractSet}) = length(d) == 1 ? string(only(d)) : String[string(x) for x in d]
+_domain(d::Union{Tuple,AbstractArray,AbstractSet}) = length(d) == 1 ? _domain(only(d)) : String[_domain(x) for x in d]
 
 Selectors(kv) = Selectors(Pair{Symbol,Domain}[k => _domain(v) for (k, v) in pairs(kv)])
 

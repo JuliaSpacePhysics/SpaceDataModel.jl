@@ -20,6 +20,7 @@
     @test_throws ArgumentError reg[rate="raw"]
     @test_throws ArgumentError reg[rate="1hz"]
     @test NamedTuple(reg[rate="64hz", probe=:ts2].selectors).probe == "ts2"
+    @test reg[rate=SubString("64hz"), probe=[SubString("ts2")]] == reg[rate="64hz", probe="ts2"]
     # A spelling outside the domain is rejected, not coerced.
     @test_throws ArgumentError reg[rate="64hz", probe="TS2"]
 
