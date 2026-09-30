@@ -1,6 +1,5 @@
 eqfields(a::T, b::T) where {T} = all(i -> getfield(a, i) == getfield(b, i), 1:nfields(a))
 
-# A loop, not `map(...) do`: on Julia ≥1.13 the closure's type lives in this module and fails `all_concrete`.
 macro getproperty(value, names::Expr, default = nothing)
     v = esc(value)
     tests = Expr[]
