@@ -39,16 +39,13 @@ function cadence(T::Type{<:Real}, times; kw...)
     return dt isa AbstractTime ? T(Dates.tons(dt) / 1.0e9) : T(dt)
 end
 
-
-#########
-# Parsing
-#########
-
 """Check if a string is in Day of Year format (YYYY-DDD)."""
 is_doy(str) = occursin(r"^(\d{4})-(\d{3})", str)
 
 parse_doy_date(str, i = 5) = @views Date(str[1:(i - 1)]) + Day(str[(i + 1):(i + 3)]) - Day(1)
-parse_doy_datetime(str) = @views parse_doy_date(str) + Time(str[10:end])
+# The result is a `DateTime`, so read the time to the millisecond.
+const DOY_TIME_FORMAT = dateformat"HH:MM:SS.s"
+parse_doy_datetime(str) = @views parse_doy_date(str) + Time(str[10:end], DOY_TIME_FORMAT)
 _parse_date(str) = is_doy(str) ? parse_doy_date(str) : Date(str)
 _parse_datetime(str) = is_doy(str) ? parse_doy_datetime(str) : DateTime(str)
 
