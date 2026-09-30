@@ -64,7 +64,8 @@ _bind(p::FilePattern, fills) =
 function _merge(parts)
     out = _Part[]
     for x in parts
-        x isa String && !isempty(out) && out[end] isa String ? (out[end] *= x) : push!(out, x)
+        last = isempty(out) ? nothing : out[end]
+        x isa String && last isa String ? (out[end] = last * x) : push!(out, x)
     end
     return out
 end
