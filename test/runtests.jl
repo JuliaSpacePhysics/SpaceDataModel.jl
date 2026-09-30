@@ -51,6 +51,12 @@ end
         @test parse_datetime(dt) == expected
     end
 
+    # sub-millisecond input does not fit a DateTime, in either form
+    for dt in ("1989-01-01T00:00:00.0001", "1989-001T00:00:00.0001",
+               "1989-001T00:00:00.000001", "1989-001T00:00:00.000000001")
+        @test_throws ArgumentError parse_datetime(dt)
+    end
+
     @static if VERSION < v"1.12.0-beta1"
         @test_throws ArgumentError DateTime("1999")
     else
