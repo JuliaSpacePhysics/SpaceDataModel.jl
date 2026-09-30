@@ -1,9 +1,12 @@
+using Pkg
+# prereleases often have no installable JET.
+const RUN_JET_TESTS = isempty(VERSION.prerelease)
+RUN_JET_TESTS && Pkg.add("JET")
+
 using TestItems, TestItemRunner
 using Test
 
-@run_package_tests
-
-const RUN_JET_TESTS = isempty(VERSION.prerelease)
+@run_package_tests filter = ti -> RUN_JET_TESTS || !(:jet in ti.tags)
 
 @testitem "SpaceDataModel.jl" begin
     SpaceDataModel.workload()
@@ -64,11 +67,8 @@ end
     end
 end
 
-if RUN_JET_TESTS
-    using Pkg; Pkg.add("JET"); Pkg.instantiate()
-    @testitem "JET - Workload" begin
-        using JET
-        println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
-        @test_call SpaceDataModel.workload()
-    end
+@testitem "JET - Workload" tags = [:jet] begin
+    using JET
+    println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
+    @test_call SpaceDataModel.workload()
 end
