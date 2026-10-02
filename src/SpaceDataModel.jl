@@ -38,6 +38,7 @@ include("select.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
+include("sanitize.jl")
 const getdim = dim
 include("variable.jl")
 include("coord.jl")

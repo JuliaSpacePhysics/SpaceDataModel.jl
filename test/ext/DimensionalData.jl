@@ -37,6 +37,16 @@
     @test depend_1(rand(X(3), Ti(5), Y(2))) == X(1:3)
 end
 
+@testitem "DimensionalData sanitize" begin
+    using DimensionalData
+    using SpaceDataModel: sanitize
+
+    md = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "VALIDMAX" => [1.0, 6.0])
+    x = DimArray([1.0 5.0; -1.0e31 2.0], (Ti(1:2), X(1:2)); metadata = md)
+    @test isnan.(sanitize(x)) == Bool[0 0; 1 0]
+    @test !any(isnan, x)
+end
+
 @testitem "DimensionalData Metadata" begin
     using DimensionalData
     # Create test data
