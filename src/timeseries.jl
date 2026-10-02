@@ -1,19 +1,29 @@
 """A time series-focused namespace for packages to share functions"""
 module TimeSeriesAPI
 using ..SpaceDataModel: dim, @getproperty, unwrap
-export tdimnum, timedim, times, tmin, tmax
+export tdimnum, hastimedim, timedim, times, tmin, tmax
 using Dates: AbstractTime
 """
     tdimnum(x)
 
-Get the time dimension number of object `x`.
-"""
-function tdimnum(x)
-    @warn "Could not guess the time dimension number, assuming last dimension"
-    return ndims(x)
-end
+Index of the time dimension of `x`, or `nothing` if `x` has none.
 
-timedim(x) = dim(x, tdimnum(x))
+The one method a time series type implements; [`hastimedim`](@ref), `timedim` and `times` derive from it.
+"""
+tdimnum(x) = nothing
+
+"""
+    hastimedim(x)
+
+Whether `x` has a time dimension.
+"""
+hastimedim(x) = !isnothing(tdimnum(x))
+
+function timedim(x)
+    t = tdimnum(x)
+    isnothing(t) && throw(ArgumentError("$(typeof(x)) has no time dimension (`tdimnum` returned `nothing`)"))
+    return dim(x, t)
+end
 
 times(v) = @getproperty v (:times, :time) unwrap(timedim(v))
 times(v::AbstractVector{<:AbstractTime}) = v

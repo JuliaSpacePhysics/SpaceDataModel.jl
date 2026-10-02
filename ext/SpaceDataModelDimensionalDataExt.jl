@@ -16,7 +16,7 @@ _dimnum(x, dim) = DD.hasdim(x, dim) ? DD.dimnum(x, dim) : nothing
 SpaceDataModel.tdimnum(x::AbstractDimArray) = @something(
     _dimnum(x, TimeDim),
     _dimnum(x, Dim{:time}),
-    tdimnum(parent(x))
+    Some(nothing)
 )
 
 end

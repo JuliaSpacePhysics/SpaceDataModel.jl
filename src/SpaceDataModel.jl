@@ -10,7 +10,7 @@ export AbstractReferenceFrame, AbstractRepresentation
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getdata, available
 export getmeta, setmeta!, setmeta, units
-export getdim, tdimnum
+export getdim, tdimnum, hastimedim
 
 # API
 

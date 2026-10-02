@@ -84,5 +84,9 @@ end
         x = rand(X(3), Dim{:time}(5), Z(2))
         @test tdimnum(x) == 2
         @test (@allocated tdimnum(x)) == 0
+
+        x = rand(X(3), Y(2))
+        @test isnothing(tdimnum(x))
+        @test_throws ArgumentError times(x)
     end
 end
