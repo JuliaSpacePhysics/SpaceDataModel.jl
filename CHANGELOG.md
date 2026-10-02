@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- `hastimedim`.
+- `sanitize`, masking by the schema's `fill_value`/`valid_min`/`valid_max`, and its kernel `mask_invalid!` (moved from CDFDatasets).
+- ISTP schema keys `fill_value`, `valid_min`, `valid_max`.
+
+### Changed
+
+- **Breaking**: `tdimnum(x)` returns `nothing` when `x` has no time dimension instead of warning and assuming the last one, including for a `DimArray` without a `Ti`/`:time` dimension. `timedim`/`times` throw an `ArgumentError` without a time dimension.
+- **Breaking**: the `dims` field default of `dim(x, i)` and the `times`/`time` field default of `times(x)` apply only to `AbstractDataVariable` subtypes; other types get `axes(x, i)` and the time-dimension path.
+
+### Fixed
+
+- `depend_1` is the first non-time dimension (it returned the time dimension when time was in the middle); it returns the dimension rather than its unwrapped values, so ISTP `depend_1_*` metadata is found.
+
 ## [0.3.0] - 2026-08-27
 
 Model-the-contract redesign. Breaking throughout.

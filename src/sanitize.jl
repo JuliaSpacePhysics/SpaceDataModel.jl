@@ -2,7 +2,7 @@
     sanitize(x)
 
 Values of `x` with fill and out-of-range values replaced by `NaN`, per the `fill_value`, `valid_min`
-and `valid_max` of its `get_schema`; `x` itself when it has none of them or non-`Real` elements.
+and `valid_max` of its schema (`get_schema(x)`); `x` itself when it has none of them or non-`Real` elements.
 
 Metadata survives arithmetic and unit conversion, so derived data carrying its source's bounds is masked
 by them. Types whose values are not in memory (e.g. file variables) extend it to read and mask at once.
