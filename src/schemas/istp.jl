@@ -9,8 +9,12 @@ Schema for ISTP-compliant metadata.
 """
 struct ISTPSchema <: MetadataSchema end
 
+# DEPEND_1 is the first non-time dimension, wherever time is stored; `nothing` for a vector.
+# `depend_1` returns the dimension, which carries its metadata; `unwrap` it for the values.
+depend_1_dimnum(x) = ndims(x) < 2 ? nothing : tdimnum(x) == 1 ? 2 : 1
 function depend_1(x)
-    return unwrap(dim(x, tdimnum(x) == ndims(x) ? 1 : 2))
+    d = depend_1_dimnum(x)
+    return isnothing(d) ? nothing : dims(x, d)
 end
 
 const _ISTP_SCHEMA = (
@@ -21,6 +25,9 @@ const _ISTP_SCHEMA = (
     scale = "SCALETYP",
     labels = "LABL_PTR_1",
     display_type = "DISPLAY_TYPE",
+    fill_value = "FILLVAL",
+    valid_min = "VALIDMIN",
+    valid_max = "VALIDMAX",
     depend_1_name = Via(depend_1, ("LABLAXIS", "FIELDNAM")),
     depend_1_unit = Via(depend_1, "UNITS"),
     depend_1_scale = Via(depend_1, "SCALETYP"),

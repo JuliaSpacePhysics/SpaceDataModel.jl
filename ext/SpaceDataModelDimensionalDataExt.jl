@@ -8,6 +8,7 @@ import SpaceDataModel: getmeta, _merge, tdimnum, timedim, unwrap, name
 _merge(::DD.NoMetadata, d, rest...) = merge(d, rest...)
 SpaceDataModel.getmeta(A::Union{AbstractDimArray, AbstractDimStack, Dimension}) = DD.metadata(A)
 SpaceDataModel.name(x::Dimension) = DD.name(x)
+SpaceDataModel.dims(x::AbstractDimArray, i::Integer) = DD.dims(x, i)
 SpaceDataModel.unwrap(x::Dimension) = unwrap(parent(x))
 
 # A no-error version of `dimnum`
@@ -16,7 +17,7 @@ _dimnum(x, dim) = DD.hasdim(x, dim) ? DD.dimnum(x, dim) : nothing
 SpaceDataModel.tdimnum(x::AbstractDimArray) = @something(
     _dimnum(x, TimeDim),
     _dimnum(x, Dim{:time}),
-    tdimnum(parent(x))
+    Some(nothing)
 )
 
 end

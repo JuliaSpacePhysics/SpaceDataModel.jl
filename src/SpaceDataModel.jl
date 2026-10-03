@@ -10,7 +10,7 @@ export AbstractReferenceFrame, AbstractRepresentation
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getdata, available
 export getmeta, setmeta!, setmeta, units
-export getdim, tdimnum
+export getdim, tdimnum, hastimedim
 
 # API
 
@@ -38,7 +38,9 @@ include("select.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
-const getdim = dim
+include("mask.jl")
+# `dim` is the pre-0.4 name.
+const dim = getdim = dims
 include("variable.jl")
 include("coord.jl")
 include("coordinates/reference_frame.jl")

@@ -15,3 +15,15 @@ getmeta
 setmeta
 setmeta!
 ```
+
+## Time series
+
+```@docs
+tdimnum
+hastimedim
+```
+
+```@docs; canonical=false
+SpaceDataModel.mask_invalid
+SpaceDataModel.mask_invalid!
+```

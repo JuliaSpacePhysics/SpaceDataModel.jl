@@ -5,17 +5,23 @@ A variable `v` of a type derived from `AbstractDataVariable` should at least imp
 
 Optional:
 
+* `tdimnum(v)`: the index of the time dimension
 * `times(v)`: the timestamps of the variable
 * `units(v)`: the units of the variable
 * `getmeta(v)`: the metadata of the variable
 * `name(v)`: the name of the variable
-* `dim(v, i)`: the `i`-th dimension of the variable
-* `dim(v, name)`: the dimension named `name` of the variable
+* `dims(v, i)`: the `i`-th dimension of the variable
+* `dims(v, name)`: the dimension named `name` of the variable
+
+Subtyping opts into field-name defaults, which other types do not get: `parent(v)` is the `data`
+field, `dims(v, i)` is `v.dims[i]` when there is a `dims` field, and `times(v)` is the `times` or
+`time` field when there is one.
 """
 abstract type AbstractDataVariable{T, N} <: AbstractArray{T, N} end
 
 # https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array
 Base.parent(var::AbstractDataVariable) = var.data
+dims(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : axes(var, i)
 Base.iterate(A::AbstractDataVariable, args...) = iterate(parent(A), args...)
 for f in (:size, :Array)
     @eval Base.$f(var::AbstractDataVariable) = $f(parent(var))
@@ -37,7 +43,7 @@ _timerange_str(times) = "Time Range: $(minimum(times)) to $(maximum(times))"
 function Base.show(io::IO, var::T) where {T <: AbstractDataVariable}
     print_name(io, var)
     print(io, " [")
-    time = times(var)
+    time = hastimedim(var) ? times(var) : nothing
     isnothing(time) || isempty(time) || print(io, _timerange_str(time), ",")
     u = units(var)
     isnothing(u) || print(io, " Units: ", u, ",")
@@ -55,7 +61,7 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractData
     print(io, "$T: ")
     print_name(io, var)
     println(io)
-    time = times(var)
+    time = hastimedim(var) ? times(var) : nothing
     isnothing(time) || isempty(time) || println(io, "  ", _timerange_str(time))
     u = units(var)
     isnothing(u) || println(io, "  Units: ", u)
