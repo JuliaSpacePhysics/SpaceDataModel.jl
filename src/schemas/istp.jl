@@ -9,10 +9,13 @@ Schema for ISTP-compliant metadata.
 """
 struct ISTPSchema <: MetadataSchema end
 
-# DEPEND_1 is the first non-time dimension, wherever time is stored. `depend_1` returns the
-# dimension, which carries its metadata; `unwrap` it for the values.
-depend_1_dimnum(x) = tdimnum(x) == 1 ? 2 : 1
-depend_1(x) = dim(x, depend_1_dimnum(x))
+# DEPEND_1 is the first non-time dimension, wherever time is stored; `nothing` for a vector.
+# `depend_1` returns the dimension, which carries its metadata; `unwrap` it for the values.
+depend_1_dimnum(x) = ndims(x) < 2 ? nothing : tdimnum(x) == 1 ? 2 : 1
+function depend_1(x)
+    d = depend_1_dimnum(x)
+    return isnothing(d) ? nothing : dim(x, d)
+end
 
 const _ISTP_SCHEMA = (
     desc = "CATDESC",

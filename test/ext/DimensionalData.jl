@@ -45,6 +45,10 @@ end
     x = DimArray([1.0 5.0; -1.0e31 2.0], (Ti(1:2), X(1:2)); metadata = md)
     @test isnan.(sanitize(x)) == Bool[0 0; 1 0]
     @test !any(isnan, x)
+
+    v = DimArray([1.0, -1.0e31], Ti(1:2); metadata = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "LABLAXIS" => "B"))
+    @test isnan.(sanitize(v)) == [false, true]
+    @test isnothing(SpaceDataModel.ISTPSchema()(v)[:depend_1_name])
 end
 
 @testitem "DimensionalData Metadata" begin

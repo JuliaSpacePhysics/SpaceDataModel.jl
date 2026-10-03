@@ -4,7 +4,7 @@
 
 ### Added
 
-- `hastimedim`.
+- `hastimedim`; `tdimnum` of a vector of times is 1.
 - `sanitize`, masking by the schema's `fill_value`/`valid_min`/`valid_max`, and its kernel `mask_invalid!` (moved from CDFDatasets).
 - ISTP schema keys `fill_value`, `valid_min`, `valid_max`.
 
@@ -15,7 +15,7 @@
 
 ### Fixed
 
-- `depend_1` is the first non-time dimension (it returned the time dimension when time was in the middle); it returns the dimension rather than its unwrapped values, so ISTP `depend_1_*` metadata is found.
+- `depend_1` is the first non-time dimension (it returned the time dimension when time was in the middle); it returns the dimension rather than its unwrapped values, so ISTP `depend_1_*` metadata is found; it is `nothing` for a vector.
 
 ## [0.3.0] - 2026-08-27
 

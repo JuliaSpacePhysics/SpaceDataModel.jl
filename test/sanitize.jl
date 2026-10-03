@@ -17,6 +17,9 @@
     @test I isa Vector{Float32}
     @test isequal(I, Float32[NaN, 3, NaN])
 
+    @test isnan(mask_invalid!(Float32[-1.0f31]; fillval = -1.0e31)[1])
+    @test_throws ArgumentError mask_invalid!([1.0, 2.0]; validmax = [1.0, 2.0])
+
     t = [DateTime(2000)]
     @test mask_invalid!(t; fillval = DateTime(2000), dims = 1) === t
 end

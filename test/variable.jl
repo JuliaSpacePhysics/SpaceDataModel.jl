@@ -39,4 +39,5 @@ end
     @test dim(v, 1) === t
     @test times(v) === t
     @test_throws ArgumentError times(x)
+    @test hastimedim(t)
 end
