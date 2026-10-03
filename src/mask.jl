@@ -74,7 +74,8 @@ end
 _invalid(x, f, l, h) = isequal(x, f) | (x < l) | (x > h)
 
 function _mask_kernel!(B::AbstractVector{F}, A::AbstractVector, f::F, l::F, h::F) where {F}
-    @inbounds @simd for i in eachindex(B, A)
+    # `ivdep`: `B` may be `A` (in-place masking), which reads and writes only index `i`.
+    @inbounds @simd ivdep for i in eachindex(B, A)
         x = F(A[i])
         B[i] = ifelse(_invalid(x, f, l, h), F(NaN), x)
     end
