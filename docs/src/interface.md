@@ -24,6 +24,6 @@ hastimedim
 ```
 
 ```@docs; canonical=false
-SpaceDataModel.sanitize
+SpaceDataModel.mask_invalid
 SpaceDataModel.mask_invalid!
 ```

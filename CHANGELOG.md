@@ -5,7 +5,7 @@
 ### Added
 
 - `hastimedim`.
-- `sanitize`, masking by the schema's `fill_value`/`valid_min`/`valid_max`, and its kernel `mask_invalid!` (moved from CDFDatasets).
+- `mask_invalid`/`mask_invalid!`: replace fill and out-of-range values by `NaN`, with bounds defaulting to the schema's `fill_value`/`valid_min`/`valid_max` (moved from CDFDatasets' `sanitize`).
 - ISTP schema keys `fill_value`, `valid_min`, `valid_max`.
 
 ### Changed

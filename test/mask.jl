@@ -1,9 +1,10 @@
 @testitem "mask_invalid!" begin
-    using SpaceDataModel: mask_invalid!, sanitize
+    using SpaceDataModel: mask_invalid!, mask_invalid
     using Dates
 
-    x = rand(3)
-    @test sanitize(x) === x
+    x = Int8[1, 2]
+    @test mask_invalid(x) == x
+    @test eltype(mask_invalid(x)) === Float32
 
     A = Float32[1 2; 3 4; 5 6]
     @test isnan.(mask_invalid!(copy(A); validmin = [1, 4], validmax = [3, 6], dims = 2)) == Bool[0 1; 0 0; 1 0]

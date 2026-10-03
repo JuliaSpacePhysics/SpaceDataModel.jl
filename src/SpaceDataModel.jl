@@ -38,7 +38,7 @@ include("select.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
-include("sanitize.jl")
+include("mask.jl")
 # `dim` is the pre-0.4 name.
 const dim = getdim = dims
 include("variable.jl")

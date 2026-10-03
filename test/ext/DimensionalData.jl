@@ -37,17 +37,19 @@
     @test depend_1(rand(X(3), Ti(5), Y(2))) == X(1:3)
 end
 
-@testitem "DimensionalData sanitize" begin
+@testitem "DimensionalData mask_invalid" begin
     using DimensionalData
-    using SpaceDataModel: sanitize
+    using SpaceDataModel: mask_invalid
 
-    md = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "VALIDMAX" => [1.0, 6.0])
+    md = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "VALIDMAX" => [1.0, 4.0])
     x = DimArray([1.0 5.0; -1.0e31 2.0], (Ti(1:2), X(1:2)); metadata = md)
-    @test isnan.(sanitize(x)) == Bool[0 0; 1 0]
+    @test isnan.(mask_invalid(x)) == Bool[0 1; 1 0]
+    @test isnan.(mask_invalid(x; validmax = nothing)) == Bool[0 0; 1 0]
+    @test isnan.(mask_invalid(x; fillval = nothing)) == Bool[0 1; 0 0]
     @test !any(isnan, x)
 
     v = DimArray([1.0, -1.0e31], Ti(1:2); metadata = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "LABLAXIS" => "B"))
-    @test isnan.(sanitize(v)) == [false, true]
+    @test isnan.(mask_invalid(v)) == [false, true]
     @test isnothing(SpaceDataModel.ISTPSchema()(v)[:depend_1_name])
 end
 
