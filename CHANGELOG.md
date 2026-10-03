@@ -4,7 +4,7 @@
 
 ### Added
 
-- `hastimedim`; `tdimnum` of a vector of times is 1.
+- `hastimedim`.
 - `sanitize`, masking by the schema's `fill_value`/`valid_min`/`valid_max`, and its kernel `mask_invalid!` (moved from CDFDatasets).
 - ISTP schema keys `fill_value`, `valid_min`, `valid_max`.
 

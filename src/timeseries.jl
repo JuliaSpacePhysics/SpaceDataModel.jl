@@ -11,7 +11,6 @@ Index of the time dimension of `x`, or `nothing` if `x` has none.
 The one method a time series type implements; [`hastimedim`](@ref), `timedim` and `times` derive from it.
 """
 tdimnum(x) = nothing
-tdimnum(::AbstractVector{<:AbstractTime}) = 1
 
 """
     hastimedim(x)
