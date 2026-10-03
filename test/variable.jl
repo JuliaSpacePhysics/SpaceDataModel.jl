@@ -14,7 +14,7 @@
 end
 
 @testitem "Field-name defaults only for AbstractDataVariable" begin
-    using SpaceDataModel: dim, times
+    using SpaceDataModel: dims, times
     using Dates
     t = DateTime(2020) .+ Hour.(0:2)
 
@@ -35,8 +35,8 @@ end
 
     x = Fields(rand(3), (t,), t)
     v = Var(rand(3), (t,), t)
-    @test dim(x, 1) == Base.OneTo(3)
-    @test dim(v, 1) === t
+    @test dims(x, 1) == Base.OneTo(3)
+    @test dims(v, 1) === t
     @test times(v) === t
     @test_throws ArgumentError times(x)
 end

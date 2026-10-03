@@ -14,7 +14,7 @@ struct ISTPSchema <: MetadataSchema end
 depend_1_dimnum(x) = ndims(x) < 2 ? nothing : tdimnum(x) == 1 ? 2 : 1
 function depend_1(x)
     d = depend_1_dimnum(x)
-    return isnothing(d) ? nothing : dim(x, d)
+    return isnothing(d) ? nothing : dims(x, d)
 end
 
 const _ISTP_SCHEMA = (

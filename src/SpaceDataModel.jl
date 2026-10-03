@@ -39,7 +39,8 @@ include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
 include("sanitize.jl")
-const getdim = dim
+# `dim` is the pre-0.4 name.
+const dim = getdim = dims
 include("variable.jl")
 include("coord.jl")
 include("coordinates/reference_frame.jl")

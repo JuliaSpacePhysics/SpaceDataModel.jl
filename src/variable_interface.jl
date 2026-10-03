@@ -8,22 +8,24 @@ unwrap(x) = x
 # Dimension
 # https://rafaqz.github.io/DimensionalData.jl/stable/api/dimensions
 """
-    dim(x, i)
-    dim(x, name)
+    dims(x)
+    dims(x, i)
+    dims(x, name)
 
-Get the `i`-th dimension of object `x`, or the dimension associated with the given `name`.
+The dimensions of object `x`, its `i`-th dimension, or the dimension associated with the given `name`.
 The default implementation returns `axes(x, i)` (see [`AbstractDataVariable`](@ref) for its `dims` field default).
 
 A dimension may be time-varying or dependent on other dimensions; in such cases,
 the effective size of the corresponding array dimension `ndims` can be greater than 1.
 """
-function dim end
+function dims end
 
-dim(x, i) = axes(x, i)
+dims(x) = ntuple(i -> dims(x, i), ndims(x))
+dims(x, i) = axes(x, i)
 
-function dim(x, s::Union{String, Symbol})
+function dims(x, s::Union{String, Symbol})
     for i in 1:ndims(x)
-        d = dim(x, i)
+        d = dims(x, i)
         name(d) == s && return d
     end
     error("Dimension $s not found")

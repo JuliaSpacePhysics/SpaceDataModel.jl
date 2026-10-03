@@ -1,6 +1,6 @@
 """A time series-focused namespace for packages to share functions"""
 module TimeSeriesAPI
-using ..SpaceDataModel: AbstractDataVariable, dim, @getproperty, unwrap
+using ..SpaceDataModel: AbstractDataVariable, dims, @getproperty, unwrap
 export tdimnum, hastimedim, timedim, times, tmin, tmax
 using Dates: AbstractTime
 """
@@ -22,7 +22,7 @@ hastimedim(x) = !isnothing(tdimnum(x))
 function timedim(x)
     t = tdimnum(x)
     isnothing(t) && throw(ArgumentError("$(typeof(x)) has no time dimension (`tdimnum` returned `nothing`)"))
-    return dim(x, t)
+    return dims(x, t)
 end
 
 times(v) = _times(v)

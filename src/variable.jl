@@ -10,18 +10,18 @@ Optional:
 * `units(v)`: the units of the variable
 * `getmeta(v)`: the metadata of the variable
 * `name(v)`: the name of the variable
-* `dim(v, i)`: the `i`-th dimension of the variable
-* `dim(v, name)`: the dimension named `name` of the variable
+* `dims(v, i)`: the `i`-th dimension of the variable
+* `dims(v, name)`: the dimension named `name` of the variable
 
 Subtyping opts into field-name defaults, which other types do not get: `parent(v)` is the `data`
-field, `dim(v, i)` is `v.dims[i]` when there is a `dims` field, and `times(v)` is the `times` or
+field, `dims(v, i)` is `v.dims[i]` when there is a `dims` field, and `times(v)` is the `times` or
 `time` field when there is one.
 """
 abstract type AbstractDataVariable{T, N} <: AbstractArray{T, N} end
 
 # https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array
 Base.parent(var::AbstractDataVariable) = var.data
-dim(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : axes(var, i)
+dims(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : axes(var, i)
 Base.iterate(A::AbstractDataVariable, args...) = iterate(parent(A), args...)
 for f in (:size, :Array)
     @eval Base.$f(var::AbstractDataVariable) = $f(parent(var))
