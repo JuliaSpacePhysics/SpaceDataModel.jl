@@ -40,6 +40,7 @@ include("product.jl")
 include("variable_interface.jl")
 const dim = getdim = dims # `dim` is the pre-0.4 name.
 include("variable.jl")
+include("mask.jl")
 include("coord.jl")
 include("coordinates/reference_frame.jl")
 include("coordinates/representation.jl")

@@ -5,6 +5,8 @@
 ### Added
 
 - `SpaceDataModel.hastimedim` (unexported).
+- `mask_invalid`/`mask_invalid!` with `ValidityChecks`: replace fill and out-of-range values by `NaN` (moved from CDFDatasets' `sanitize`).
+- ISTP schema keys `fillval`, `validmin`, `validmax`.
 
 ### Changed
 
