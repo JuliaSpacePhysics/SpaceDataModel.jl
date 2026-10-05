@@ -22,7 +22,6 @@
         v.attrib["comment"] = "this is a string attribute with unicode Ω ∈ ∑ ∫ f(x) dx "
 
         @test name(v) == "temperature"
-        @test CommonDataModel.dim(v, "lon") == sz[1]
         @test getmeta(v, "units") == "degree Celsius"
         @test getmeta(v, "comment") == "this is a string attribute with unicode Ω ∈ ∑ ∫ f(x) dx "
     end

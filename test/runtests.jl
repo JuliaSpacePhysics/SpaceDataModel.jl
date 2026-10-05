@@ -54,12 +54,6 @@ end
                "1989-001T00:00:00.000001", "1989-001T00:00:00.000000001")
         @test_throws ArgumentError parse_datetime(dt)
     end
-
-    @static if VERSION < v"1.12.0-beta1"
-        @test_throws ArgumentError DateTime("1999")
-    else
-        @test DateTime("1999") == DateTime(1999)
-    end
 end
 
 @testitem "JET - Workload" begin

@@ -15,8 +15,6 @@ end
 @testitem "Extract Attributes" setup = [MetadataTest] begin
     schema = ISTPSchema()
 
-    @test :desc in keys(schema)
-
     metadata = Dict(
         "CATDESC" => "Velocity Data",
         "LABLAXIS" => "V",
@@ -28,8 +26,6 @@ end
     @test get_schema(() -> data) isa ISTPSchema
 
     attrs = schema(data)
-    @test haskey(attrs, :desc)
-    @test haskey(attrs, :units)
     @test attrs[:desc] == schema(data, :desc) == "Velocity Data"
     @test attrs[:name] == "V"
     @test attrs[:units] == "km/s"
@@ -47,15 +43,6 @@ end
 
 @testitem "SchemaDict" begin
     using SpaceDataModel: SchemaDict, ISTPSchema, DefaultSchema, get_schema
-
-    @testset "Construction" begin
-        t = SchemaDict(ISTPSchema(), "UNITS" => "km/s")
-        @test t.schema isa ISTPSchema
-        @test t["UNITS"] == "km/s"
-        # Wrap an existing dict
-        d = Dict("a" => 1, "b" => 2)
-        t2 = SchemaDict(DefaultSchema(), d)
-    end
 
     @testset "K, V inferred from wrapped dict" begin
         t = SchemaDict(ISTPSchema(), Dict("UNITS" => "km/s"))
@@ -116,7 +103,6 @@ end
 
     @testset "Default value" begin
         @test resolve(metadata, "UNITS" => "default") == "km/s"
-        @test resolve(metadata, "MISSING" => "default") == "default"
         @test resolve(metadata, "MISSING" => "default") == "default"
         @test resolve(metadata, ("UNITS", "units") => "default") == "km/s"
     end

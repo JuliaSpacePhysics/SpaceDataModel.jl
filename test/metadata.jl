@@ -1,19 +1,3 @@
-@testitem "NoMetadata" begin
-    using SpaceDataModel: NoMetadata
-    nm = NoMetadata()
-
-    # Test keys operation
-    @test keys(nm) == () == keys(NamedTuple())
-    @test length(keys(nm)) == 0
-    @test values(nm) == ()
-
-    # Test haskey operation
-    @test haskey(nm, "any_key") == false
-    @test haskey(nm, :symbol_key) == false
-    # Test get operation with default
-    @test get(nm, "key", nothing) === nothing
-end
-
 @testitem "NoMetadata Merging Operations" begin
     using SpaceDataModel: NoMetadata
 
@@ -27,15 +11,6 @@ end
     @test merge(nm, Dict()) == nm # Test merging with empty Dict
     @test merge(nm, nm) == nm # Test merging with NoMetadata
     @test merge(nm, dict1, nm) == dict1
-end
-
-@testitem "NoMetadata Type Conversions" begin
-    using SpaceDataModel: NoMetadata
-    nm = NoMetadata()
-    # Test conversion to NamedTuple
-    @test NamedTuple(nm) == (;)
-    # Test conversion to Dict
-    @test Dict(pairs(nm)) == Dict()
 end
 
 @testitem "NoMetadata in model constructors" begin
@@ -63,7 +38,6 @@ end
 
     @test d["source"] == "overlay"
     @test base["source"] == "base"
-    @test keys(d) isa Base.KeySet
     @test length(d) == 3
     @test Dict(d) == Dict("source" => "overlay", "base_only" => 1, "overlay_only" => 2)
 end

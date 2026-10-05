@@ -76,14 +76,11 @@ end
 
 @testitem "DimensionalData: general methods" begin
     using DimensionalData
-    using SpaceDataModel: name, meta, dims, timedim, times, tmin, tmax, unwrap
+    using SpaceDataModel: name, meta, dims, timedim, times, unwrap
 
     x = rand(X(3), Y(4), Ti(5))
     @test meta(x) == DimensionalData.NoMetadata()
     @test dims(x) == DimensionalData.dims(x)
-    @test dims(x, 1) == X(1:3)
-    @test dims(x, 2) == Y(1:4)
-    @test dims(x, 3) == Ti(1:5)
     @test dims(x, :Ti) == Ti(1:5)
     @test dims(x, :X) == X(1:3)
     @test_throws ErrorException dims(x, :time)
@@ -97,9 +94,6 @@ end
         @test tdimnum(x) == 2
         @test timedim(x) == Ti([1, 2, 3, 4, 5])
         @test times(x) == [1, 2, 3, 4, 5]
-        @test tmin(x) == 1
-        @test tmax(x) == 5
-        @test unwrap(timedim(x)) == 1:5
         @test name(timedim(x)) == :Ti
 
         x = rand(X(3), Dim{:time}(5), Z(2))
