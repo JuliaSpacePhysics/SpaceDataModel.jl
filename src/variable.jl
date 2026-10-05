@@ -37,7 +37,7 @@ _timerange_str(times) = "Time Range: $(minimum(times)) to $(maximum(times))"
 function Base.show(io::IO, var::T) where {T <: AbstractDataVariable}
     print_name(io, var)
     print(io, " [")
-    time = times(var)
+    time = hastimedim(var) ? times(var) : nothing
     isnothing(time) || isempty(time) || print(io, _timerange_str(time), ",")
     u = units(var)
     isnothing(u) || print(io, " Units: ", u, ",")
@@ -55,7 +55,7 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractData
     print(io, "$T: ")
     print_name(io, var)
     println(io)
-    time = times(var)
+    time = hastimedim(var) ? times(var) : nothing
     isnothing(time) || isempty(time) || println(io, "  ", _timerange_str(time))
     u = units(var)
     isnothing(u) || println(io, "  Units: ", u)

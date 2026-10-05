@@ -48,6 +48,7 @@ include("schemas/schema.jl"); export get_schema, SchemaDict
 
 include("times.jl");        using .Times
 include("timeseries.jl");   using .TimeSeriesAPI
+using .TimeSeriesAPI: hastimedim
 include("timerange.jl");    export TimeRanges, ContinuousTimeRanges
 include("remote.jl");       export localize, resolve_url, remotefiles
 

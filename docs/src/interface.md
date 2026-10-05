@@ -15,3 +15,9 @@ getmeta
 setmeta
 setmeta!
 ```
+
+## Time series
+
+```@docs
+tdimnum
+```
