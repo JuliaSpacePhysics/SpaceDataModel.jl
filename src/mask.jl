@@ -45,10 +45,15 @@ by default `depend_1`, the first non-time dimension.
 Mask before arithmetic or unit conversion: metadata describes stored values.
 
 Int8/UInt8, Int16/UInt16 and Float16 promote to Float32, wider integers to Float64, so Int64/UInt64 beyond 2^53
-compare after rounding. Without `checks`, non-`Real` arrays are returned unchanged.
+compare after rounding. Without `checks`, non-`Real` arrays are returned unchanged. A `PermutedDimsArray` gives one
+with the same permutation.
 """
 mask_invalid(A) = eltype(A) <: Real ? mask_invalid(A, ValidityChecks(A)) : A
-mask_invalid(A, c::ValidityChecks, dims = nothing) = mask_invalid!(similar(A, _float(eltype(A))), A, c, dims)
+mask_invalid(A, c::ValidityChecks, dims = nothing) = mask_invalid!(_similar(A, _float(eltype(A))), A, c, dims)
+
+# Same memory order as `A`: a copy in another order is a transpose, far slower than the masking.
+_similar(A::PermutedDimsArray{<:Any, N, perm}, ::Type{F}) where {N, perm, F} = PermutedDimsArray(similar(parent(A), F), perm)
+_similar(A, ::Type{F}) where {F} = similar(A, F)
 
 """
     mask_invalid!(B, A, checks = ValidityChecks(A), dims = nothing)
@@ -57,9 +62,13 @@ mask_invalid(A, c::ValidityChecks, dims = nothing) = mask_invalid!(similar(A, _f
 """
 function mask_invalid!(B::AbstractArray, A::AbstractArray, c::ValidityChecks = ValidityChecks(A), dims = nothing)
     size(B) == size(A) || throw(DimensionMismatch("source and destination sizes differ"))
-    B !== A && Base.mightalias(B, A) && (A = copy(A))
-    return _mask_invalid!(B, A, c, _component_dims(A, _ncomponents(c), dims))
+    _mask_invalid!(_storage(B), _storage(A), c, _component_dims(A, _ncomponents(c), dims))
+    return B
 end
+
+# A variable's Cartesian indexing would make the kernels' `reshape` a slow `ReshapedArray`.
+_storage(A::AbstractDataVariable) = _storage(parent(A))
+_storage(A) = A
 
 # Like xarray's CF decoding: Float16 overflows sums past 65504.
 _float(::Type{<:Union{Int8, UInt8, Int16, UInt16, Float16}}) = Float32
@@ -79,8 +88,20 @@ function _component_dims(A, n, ::Nothing)
     throw(DimensionMismatch("$n components do not match `depend_1` of an array of size $(size(A))"))
 end
 
+# Masks the parents, in memory order. Components spanning several dimensions are flattened in `A`'s order,
+# which the permutation would change: those take the generic kernels, behind a barrier so they compile only when used.
+function _mask_invalid!(B::PermutedDimsArray{<:Any, N, perm}, A::PermutedDimsArray{<:Any, N, perm}, c, dims::AbstractUnitRange) where {N, perm}
+    length(dims) == 1 || _ncomponents(c) == 1 || (_mask_reshaped!(B, Base.inferencebarrier(A), c, dims); return B)
+    d = perm[first(dims)]
+    _mask_reshaped!(parent(B), parent(A), c, d:d)
+    return B
+end
+_mask_invalid!(B, A, c, dims::AbstractUnitRange) = _mask_reshaped!(B, A, c, dims)
+
 # Reshaped so the kernels compile once whatever `ndims(A)`: (before, components, after), or a vector for tiling.
-function _mask_invalid!(B, A, c::ValidityChecks, dims::AbstractUnitRange)
+function _mask_reshaped!(B, A, c, dims::AbstractUnitRange)
+    # On storage, where `dataids` see the memory and `copy` keeps the type.
+    B !== A && Base.mightalias(B, A) && return _mask_reshaped!(B, copy(A), c, dims)
     n = _ncomponents(c)
     sz(r) = (p = 1; for i in r; p *= size(A, i); end; p)
     shape = n == 1 ? (length(A), 1, 1) : (sz(1:(first(dims) - 1)), sz(dims), sz((last(dims) + 1):ndims(A)))
@@ -106,7 +127,7 @@ _isfill(y, ::Nothing) = false
 
 # A fill outside `[l, h]`, as most CDAWeb fills are, fails the range check anyway: the kernels get `nothing`
 # and skip its comparison. Compiled loop variants, as a runtime flag in the loop breaks vectorization.
-# Not in `_mask_invalid!`, which is inferred per array type.
+# Not in `_mask_reshaped!`, which is inferred per array type.
 _fill(c::ValidityChecks) = any(((f, l, h) -> l <= f <= h).(_fields(c)...)) ? c.fillval : nothing
 
 _component(v, c) = length(v) == 1 ? v[1] : v[c]
