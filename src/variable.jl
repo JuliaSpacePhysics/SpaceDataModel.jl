@@ -5,6 +5,7 @@ A variable `v` of a type derived from `AbstractDataVariable` should at least imp
 
 Optional:
 
+* `tdimnum(v)`: the index of the time dimension
 * `times(v)`: the timestamps of the variable
 * `units(v)`: the units of the variable
 * `getmeta(v)`: the metadata of the variable
@@ -16,6 +17,7 @@ abstract type AbstractDataVariable{T, N} <: AbstractArray{T, N} end
 
 # https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array
 Base.parent(var::AbstractDataVariable) = var.data
+dim(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : axes(var, i)
 Base.iterate(A::AbstractDataVariable, args...) = iterate(parent(A), args...)
 for f in (:size, :Array)
     @eval Base.$f(var::AbstractDataVariable) = $f(parent(var))

@@ -12,14 +12,14 @@ unwrap(x) = x
     dim(x, name)
 
 Get the `i`-th dimension of object `x`, or the dimension associated with the given `name`.
-The default implementation returns `axes(x, i)`.
+The default implementation returns `axes(x, i)` (see [`AbstractDataVariable`](@ref) for its `dims` field default).
 
 A dimension may be time-varying or dependent on other dimensions; in such cases,
 the effective size of the corresponding array dimension `ndims` can be greater than 1.
 """
 function dim end
 
-dim(x, i) = hasfield(typeof(x), :dims) ? getfield(x, :dims)[i] : axes(x, i)
+dim(x, i) = axes(x, i)
 
 function dim(x, s::Union{String, Symbol})
     for i in 1:ndims(x)
