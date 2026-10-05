@@ -32,6 +32,9 @@
 
     # Missing key returns nothing
     @test isnothing(attrs[:labels])
+
+    using SpaceDataModel: depend_1
+    @test depend_1(rand(X(3), Ti(5), Y(2))) == X(1:3)
 end
 
 @testitem "DimensionalData Metadata" begin
