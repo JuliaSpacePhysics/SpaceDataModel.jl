@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- `SpaceDataModel.hastimedim` (unexported).
+
+### Changed
+
+- **Breaking**: `tdimnum(x)` returns `nothing` when `x` has no time dimension instead of warning and assuming the last one, including for a `DimArray` without a `Ti`/`:time` dimension. `timedim`/`times` throw an `ArgumentError` without a time dimension.
+
 ## [0.3.0] - 2026-08-27
 
 Model-the-contract redesign. Breaking throughout.
