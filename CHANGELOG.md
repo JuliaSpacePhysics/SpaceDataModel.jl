@@ -11,6 +11,10 @@
 - **Breaking**: `tdimnum(x)` returns `nothing` when `x` has no time dimension instead of warning and assuming the last one, including for a `DimArray` without a `Ti`/`:time` dimension. `timedim`/`times` throw an `ArgumentError` without a time dimension.
 - **Breaking**: the `dims` field default of `dim(x, i)` (which made a `Base.ReshapedArray` return its size) and the `times`/`time` field default of `times(x)` apply only to `AbstractDataVariable` subtypes; other types get `axes(x, i)` and the time-dimension path.
 
+### Fixed
+
+- `depend_1` is the first non-time dimension (it returned the time dimension when time was in the middle); it returns the dimension rather than its unwrapped values, so ISTP `depend_1_*` metadata is found; it is `nothing` for a vector.
+
 ## [0.3.0] - 2026-08-27
 
 Model-the-contract redesign. Breaking throughout.
