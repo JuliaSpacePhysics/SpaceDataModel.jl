@@ -8,8 +8,9 @@
 
 ### Changed
 
+- `dim` is renamed `dims`, after Base `axes`, and gains `dims(x)`, the tuple of all dimensions. `dim` and `getdim` remain aliases.
 - **Breaking**: `tdimnum(x)` returns `nothing` when `x` has no time dimension instead of warning and assuming the last one, including for a `DimArray` without a `Ti`/`:time` dimension. `timedim`/`times` throw an `ArgumentError` without a time dimension.
-- **Breaking**: the `dims` field default of `dim(x, i)` (which made a `Base.ReshapedArray` return its size) and the `times`/`time` field default of `times(x)` apply only to `AbstractDataVariable` subtypes; other types get `axes(x, i)` and the time-dimension path.
+- **Breaking**: the `dims` field default of `dims(x, i)` (which made a `Base.ReshapedArray` return its size) and the `times`/`time` field default of `times(x)` apply only to `AbstractDataVariable` subtypes; other types get `axes(x, i)` and the time-dimension path.
 
 ### Fixed
 

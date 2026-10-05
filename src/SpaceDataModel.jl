@@ -38,7 +38,7 @@ include("select.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
-const getdim = dim
+const dim = getdim = dims # `dim` is the pre-0.4 name.
 include("variable.jl")
 include("coord.jl")
 include("coordinates/reference_frame.jl")
