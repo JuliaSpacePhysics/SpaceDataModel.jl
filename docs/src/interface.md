@@ -21,3 +21,9 @@ setmeta!
 ```@docs
 tdimnum
 ```
+
+```@docs; canonical=false
+SpaceDataModel.mask_invalid
+SpaceDataModel.mask_invalid!
+SpaceDataModel.ValidityChecks
+```
