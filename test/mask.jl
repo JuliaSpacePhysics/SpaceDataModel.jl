@@ -27,6 +27,14 @@
     @test isnan(mask_invalid(P, tiles)[2, 7])
     @test isequal(mask_invalid(P, tiles), permutedims(mask_invalid(permutedims(P), tiles, 2)))
 
+    D = PermutedDimsArray(rand(Float32, 5, 2, 3), (2, 3, 1))
+    for (dims, n) in ((1, 2), (2, 3), (3, 5))
+        checks = ValidityChecks(Float32, nothing, fill(0.2, n), fill(0.8, n) .- (0:(n - 1)) ./ 10)
+        masked = mask_invalid(D, checks, dims)
+        @test masked isa PermutedDimsArray{Float32, 3, (2, 3, 1)}
+        @test isequal(masked, mask_invalid(collect(D), checks, dims))
+    end
+
     c = ValidityChecks(Float64, -1, [0, 1, 2], nothing)
     @test c[2].validmin == [1.0]
     @test c[2].fillval == [-1.0]
