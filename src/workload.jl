@@ -14,7 +14,7 @@ function workload()
 end
 
 function _mask_workload(::Type{T}) where {T}
-    mask_invalid(T[1 2; 3 4], ValidityChecks(T, T(1), [T(0), T(0)], T(3)), 2)
+    mask_invalid(T[1 2; 3 4]; fillval = T(1), validmin = [T(0), T(0)], validmax = T(3), dims = 2)
     return mask_invalid(T[1, 2])
 end
 

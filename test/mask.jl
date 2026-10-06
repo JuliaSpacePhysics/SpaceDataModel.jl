@@ -3,7 +3,7 @@
     using Dates
 
     A = Float32[1 2; 3 4; 5 6]
-    @test isnan.(mask_invalid(A, ValidityChecks(Float32, nothing, [1, 4], [3, 6]), 2)) == Bool[0 1; 0 0; 1 0]
+    @test isnan.(mask_invalid(A; validmin = [1, 4], validmax = [3, 6], dims = 2)) == Bool[0 1; 0 0; 1 0]
     @test isnan.(mask_invalid(A, ValidityChecks(Float32, nothing, [1, 3, 5], [1, 3, 5]))) == Bool[0 1; 0 1; 0 1]
 
     B = [1.0, -1.0e31]

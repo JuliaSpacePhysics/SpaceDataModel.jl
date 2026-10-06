@@ -44,6 +44,8 @@ end
     md = Dict("CATDESC" => "B", "FILLVAL" => -1.0e31, "VALIDMAX" => [1.0, 4.0])
     x = DimArray([1.0 5.0; -1.0e31 2.0], (Ti(1:2), X(1:2)); metadata = md)
     @test isnan.(mask_invalid(x)) == Bool[0 1; 1 0]
+    @test isnan.(mask_invalid(x; validmax = nothing)) == Bool[0 0; 1 0]  # FILLVAL still from metadata
+    @test isnan.(mask_invalid(x; fillval = nothing, validmax = 4)) == Bool[0 1; 0 0]
     md["VALIDMAX"] = [1.0, 1.0, 1.0]
     @test isnan.(mask_invalid(x)) == Bool[0 1; 1 1]
     md["VALIDMAX"] = [1.0, 4.0, 9.0]

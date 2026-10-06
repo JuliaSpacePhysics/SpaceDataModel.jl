@@ -1,10 +1,10 @@
 """
     ValidityChecks(T, fillval, validmin, validmax)
-    ValidityChecks(x)
+    ValidityChecks(x; fillval, validmin, validmax, dims = nothing)
 
 Fill value and valid range `[validmin, validmax]` of data with `Real` element type `T`. Each is a value, a vector of one value per component, or
-`nothing` to disable it. For `x`, they are its schema values (`get_schema(x)`) and `T = eltype(x)`; a vector whose length
-is not the number of components along `depend_1` acts as one value if its values are equal, and is dropped otherwise.
+`nothing` to disable it. For `x`, `T = eltype(x)` and each defaults to its schema value (`get_schema(x)`); a schema vector whose length
+is not the number of components along `dims` (by default `depend_1`) acts as one value if its values are equal, and is dropped otherwise.
 """
 struct ValidityChecks{C}
     fillval::Vector{C}
@@ -20,11 +20,16 @@ function ValidityChecks(::Type{T}, fillval, validmin, validmax) where {T <: Real
     return ValidityChecks{C}(_vec(C, fillval, C(NaN)), _vec(C, validmin, typemin(C)), _vec(C, validmax, typemax(C)))
 end
 
-function ValidityChecks(x)
-    s = get_schema(x)(x)
+function ValidityChecks(x; dims = nothing, fillval = _schema_check(x, :fillval, dims), validmin = _schema_check(x, :validmin, dims), validmax = _schema_check(x, :validmax, dims))
+    return ValidityChecks(eltype(x), fillval, validmin, validmax)
+end
+
+_schema_check(x, key, dims) = _fit(get_schema(x)(x, key), _ncomponents(x, dims))
+
+_ncomponents(x, dims) = prod(i -> size(x, i), dims)
+function _ncomponents(x, ::Nothing)
     d = depend_1_dimnum(x)
-    n = isnothing(d) ? 1 : size(x, d)
-    return ValidityChecks(eltype(x), _fit(s[:fillval], n), _fit(s[:validmin], n), _fit(s[:validmax], n))
+    return isnothing(d) ? 1 : size(x, d)
 end
 
 # Some CDAWeb masters give a length matching no dimension
@@ -37,18 +42,20 @@ Base.isequal(a::ValidityChecks, b::ValidityChecks) = isequal(_fields(a), _fields
 Base.hash(c::ValidityChecks, h::UInt) = hash(_fields(c), hash(ValidityChecks, h))
 
 """
-    mask_invalid(A, checks = ValidityChecks(A), dims = nothing)
+    mask_invalid(A; fillval, validmin, validmax, dims = nothing)
+    mask_invalid(A, checks::ValidityChecks, dims = nothing)
 
-Copy of `A` with elements failing `checks` replaced by `NaN`. Checks with several components apply along dimensions `dims`, an integer or a range;
-by default `depend_1`, the first non-time dimension.
+Copy of `A` with elements equal to `fillval` or outside `[validmin, validmax]` replaced by `NaN`; see
+[`ValidityChecks`](@ref) for their defaults and forms. Checks with several components apply along dimensions `dims`,
+an integer or a range; by default `depend_1`, the first non-time dimension.
 
 Mask before arithmetic or unit conversion: metadata describes stored values.
 
 Int8/UInt8, Int16/UInt16 and Float16 promote to Float32, wider integers to Float64, so Int64/UInt64 beyond 2^53
-compare after rounding. Without `checks`, non-`Real` arrays are returned unchanged. A `PermutedDimsArray` gives one
+compare after rounding. Non-`Real` arrays are returned unchanged by the keyword form. A `PermutedDimsArray` gives one
 with the same permutation.
 """
-mask_invalid(A) = eltype(A) <: Real ? mask_invalid(A, ValidityChecks(A)) : A
+mask_invalid(A; dims = nothing, kw...) = eltype(A) <: Real ? mask_invalid(A, ValidityChecks(A; dims, kw...), dims) : A
 mask_invalid(A, c::ValidityChecks, dims = nothing) = mask_invalid!(_similar(A, _float(eltype(A))), A, c, dims)
 
 # Same memory order as `A`: a copy in another order is a transpose, far slower than the masking.
@@ -56,11 +63,14 @@ _similar(A::PermutedDimsArray{<:Any, N, perm}, ::Type{F}) where {N, perm, F} = P
 _similar(A, ::Type{F}) where {F} = similar(A, F)
 
 """
-    mask_invalid!(B, A, checks = ValidityChecks(A), dims = nothing)
+    mask_invalid!(B, A; fillval, validmin, validmax, dims = nothing)
+    mask_invalid!(B, A, checks::ValidityChecks, dims = nothing)
 
 [`mask_invalid`](@ref) written into `B`, which may be `A`.
 """
-function mask_invalid!(B::AbstractArray, A::AbstractArray, c::ValidityChecks = ValidityChecks(A), dims = nothing)
+mask_invalid!(B::AbstractArray, A::AbstractArray; dims = nothing, kw...) = mask_invalid!(B, A, ValidityChecks(A; dims, kw...), dims)
+
+function mask_invalid!(B::AbstractArray, A::AbstractArray, c::ValidityChecks, dims = nothing)
     size(B) == size(A) || throw(DimensionMismatch("source and destination sizes differ"))
     _mask_invalid!(_storage(B), _storage(A), c, _component_dims(A, _ncomponents(c), dims))
     return B

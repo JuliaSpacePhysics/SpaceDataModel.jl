@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `mask_invalid(A; fillval, validmin, validmax, dims)` (and `mask_invalid!`): each check defaults to the schema value, so one can be overridden or disabled (`nothing`) while the others still come from metadata.
+
 ## [0.4.0] - 2026-10-05
 
 ### Added
