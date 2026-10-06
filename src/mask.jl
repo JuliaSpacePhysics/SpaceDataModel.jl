@@ -5,8 +5,6 @@
 Fill value and valid range `[validmin, validmax]` of data with `Real` element type `T`. Each is a value, a vector of one value per component, or
 `nothing` to disable it. For `x`, `T = eltype(x)` and each defaults to its schema value (`get_schema(x)`); a schema vector whose length
 is not the number of components along `dims` (by default `depend_1`) acts as one value if its values are equal, and is dropped otherwise.
-
-`isempty(checks)` is true when no check is set, so masking only converts to float.
 """
 struct ValidityChecks{C}
     fillval::Vector{C}
@@ -42,8 +40,6 @@ _ncomponents(c::ValidityChecks) = max(length(c.fillval), length(c.validmin), len
 Base.getindex(c::ValidityChecks, i) = ValidityChecks(map(v -> length(v) == 1 ? v : v[i isa Integer ? (i:i) : i], _fields(c))...)
 Base.isequal(a::ValidityChecks, b::ValidityChecks) = isequal(_fields(a), _fields(b))
 Base.hash(c::ValidityChecks, h::UInt) = hash(_fields(c), hash(ValidityChecks, h))
-Base.isempty(c::ValidityChecks{C}) where {C} =
-    all(isnan, c.fillval) && all(==(typemin(C)), c.validmin) && all(==(typemax(C)), c.validmax)
 
 """
     mask_invalid(A; fillval, validmin, validmax, dims = nothing)
