@@ -1,5 +1,5 @@
-eqfields(a::T, b::T) where {T} = all(i -> getfield(a, i) == getfield(b, i), 1:nfields(a))
-eqfields(a, b) = false
+eqfields(a::T, b::T, eq = ==) where {T} = all(i -> eq(getfield(a, i), getfield(b, i)), 1:nfields(a))
+eqfields(a, b, eq = ==) = false
 hashfields(x, h::UInt) = foldl((h, i) -> hash(getfield(x, i), h), 1:nfields(x); init = hash(typeof(x), h))
 
 macro getproperty(value, names::Expr, default = nothing)

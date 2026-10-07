@@ -51,8 +51,10 @@ function getdata(a::Archive, t0, t1; version="*", refresh=false, dir=datadir(), 
 end
 
 # The default `==` is `===`, which compares mutable fields (vectors, dicts) by identity.
+# `isequal` defaults to `==`, which disagrees with `hash` on NaN and signed-zero fields.
 for T in (:DatePart, :FilePattern, :Dataset, :Archive)
     @eval Base.:(==)(a::$T, b::$T) = eqfields(a, b)
+    @eval Base.isequal(a::$T, b::$T) = eqfields(a, b, isequal)
     @eval Base.hash(x::$T, h::UInt) = hashfields(x, h)
 end
 
