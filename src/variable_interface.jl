@@ -57,7 +57,7 @@ getmeta(x, key, default = nothing) = _get(getmeta(x), key, default)
 
 const meta = getmeta # not exported (to be removed)
 
-units(v) = getmeta(v, "units")
+units(v) = get_schema(v)(v, :unit)
 
 """
     setmeta!(x, key => value, ...; symbolkey => value2, ...)
