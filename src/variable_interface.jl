@@ -59,11 +59,6 @@ const meta = getmeta # not exported (to be removed)
 
 units(v) = getmeta(v, "units")
 
-function unit(v)
-    us = units(v)
-    return allequal(us) ? only(us) : error("Units are not equal: $us")
-end
-
 """
     setmeta!(x, key => value, ...; symbolkey => value2, ...)
     setmeta!(x, dict::AbstractDict)
