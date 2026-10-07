@@ -6,6 +6,10 @@
 
 - `refresh=true` re-lists each directory once per call, not once per step.
 
+### Fixed
+
+- `times(v)` now always derives from `dims(v, tdimnum(v))`; a `time` or `times` field is no longer read. Types storing times in such a field must return it from `dims(v, i)`, which previously fell back to `axes` and put sample indices on the time axis.
+
 ## [0.4.2] - 2026-10-07
 
 ### Added
