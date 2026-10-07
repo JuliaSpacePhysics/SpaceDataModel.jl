@@ -5,6 +5,15 @@
 ### Added
 
 - `mask_invalid(A; fillval, validmin, validmax, dims)` (and `mask_invalid!`): each check defaults to the schema value, so one can be overridden or disabled (`nothing`) while the others still come from metadata.
+- Time strings accept a space or `/` between date and time (`"2021-08-08 12:00"`, `"2021-08-08/12:00"`).
+
+### Changed
+
+- `units(v)` resolves through the metadata schema, so ISTP `UNITS` is found; the default schema's `:unit` reads `"units"`.
+
+### Removed
+
+- `SpaceDataModel.unit` (unexported), which threw on any multi-character unit string.
 
 ## [0.4.0] - 2026-10-05
 
