@@ -4,6 +4,9 @@
     write(f, "<a href=\"x.cdf\">x</a>")
     @test _listing("file://" * f) == ["x.cdf"]
     @test (@test_logs _listing("file://" * tempname())) == String[]
+    chmod(f, 0o000)
+    @test isnothing(@test_logs (:warn, "Remote directory not listed") _listing("file://" * f))
+    chmod(f, 0o600)
 end
 
 @testitem "failed listing is retried" begin

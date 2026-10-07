@@ -46,11 +46,13 @@ select(reg::Registry; kw...) = select(reg, Selectors(kw))
 function select(reg::Registry, sel::Selectors)
     _check_vocabulary(reg, sel)
     # Lazy so the happy path neither allocates a candidate list nor walks past the second match.
-    cands = Iterators.filter(ds -> _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel), _datasets(reg))
+    cands = _candidates(reg, sel)
     hit = iterate(cands)
     (isnothing(hit) || !isnothing(iterate(cands, hit[2]))) && _no_single_dataset(reg, sel)
     return pin(hit[1], merge(reg.defaults, sel); complete=true)
 end
+
+_candidates(reg, sel) = Iterators.filter(ds -> _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel), _datasets(reg))
 
 _pinned(d) = d isa String
 
@@ -76,7 +78,7 @@ function pin(ds, values; complete::Bool=false)
     isempty(sel) && return ds
     pinned = Selectors(Pair{Symbol,Domain}[_pin(ds, k, d, values, complete) for (k, d) in sel])
     fills = Selectors(Pair{Symbol,Domain}[p for p in pinned if _pinned(p.second)])
-    return setproperties(ds, (; name=_fill_keys(ds.name, fills), selectors=pinned, source=bind(ds.source, fills)))
+    return setproperties(ds, (; name=_pattern(_fill_keys(_parse_pattern(ds.name), fills)), selectors=pinned, source=_bind(ds.source, fills)))
 end
 
 @noinline _unpinnable(ds, k, d) =
@@ -90,7 +92,7 @@ end
 end
 
 @noinline function _no_single_dataset(reg, sel)
-    cands = [ds for ds in _datasets(reg) if _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel)]
+    cands = collect(_candidates(reg, sel))
     listed = isempty(cands) ? _datasets(reg) : cands
     n = isempty(cands) ? "no dataset" : "$(length(cands)) datasets"
     throw(ArgumentError("""

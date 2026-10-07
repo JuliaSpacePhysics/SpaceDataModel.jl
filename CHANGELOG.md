@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- `refresh=true` re-lists each directory once per call, not once per step.
+
 ## [0.4.2] - 2026-10-07
 
 ### Added

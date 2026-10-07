@@ -12,8 +12,3 @@ abstract type AbstractReferenceSystem end
 A specific realization of a reference system.
 """
 abstract type AbstractReferenceFrame end
-
-"""
-Frames can depend on epoch and planetary orientation models
-"""
-abstract type TimeDependentFrame <: AbstractReferenceFrame end

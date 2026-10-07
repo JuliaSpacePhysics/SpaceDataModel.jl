@@ -3,7 +3,7 @@ module SpaceDataModelDimensionalDataExt
 import SpaceDataModel
 using DimensionalData: AbstractDimArray, AbstractDimStack, TimeDim, Dimension, Dim
 import DimensionalData as DD
-import SpaceDataModel: getmeta, _merge, tdimnum, timedim, unwrap, name
+import SpaceDataModel: _merge, unwrap
 
 _merge(::DD.NoMetadata, d, rest...) = merge(d, rest...)
 SpaceDataModel.getmeta(A::Union{AbstractDimArray, AbstractDimStack, Dimension}) = DD.metadata(A)

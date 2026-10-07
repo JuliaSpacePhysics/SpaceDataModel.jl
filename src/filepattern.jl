@@ -54,12 +54,13 @@ function FilePattern(pattern::AbstractString; cadence=Day(1), kw...)
     return FilePattern(parts, cadence)(; kw...)
 end
 
-_bind(p::FilePattern, fills) =
-    FilePattern(_merge(_Part[x isa KeyPart && haskey(fills, x.name) ? _apply(x, fills[x.name]) : x for x in p.parts]), p.cadence)
+_fill_keys(parts, fills) =
+    _fuse(x isa KeyPart && haskey(fills, x.name) ? _apply(x, fills[x.name]) : x for x in parts)
+_bind(p::FilePattern, fills) = FilePattern(_fill_keys(p.parts, fills), p.cadence)
 (p::FilePattern)(; kw...) = _bind(p, kw)
 
 # Fuse adjacent literals so rendering walks fewer parts.
-function _merge(parts)
+function _fuse(parts)
     out = _Part[]
     for x in parts
         last = isempty(out) ? nothing : out[end]
@@ -87,27 +88,6 @@ function _format(io::IO, d::DatePart, dt)
     for tok in d.tokens
         tok isa Int ? print(io, string(dayofyear(dt); pad=tok)) : Dates.format(io, dt, tok)
     end
-end
-
-# Fill `{key}`, `{key|U}` and `{key|L}` placeholders in a string; unfilled ones stay as written.
-# Delimiters are ASCII, so byte offsets around them are valid indices in any UTF-8 string.
-function _fill_keys(pattern::AbstractString, fills)
-    isempty(fills) && return String(pattern)
-    io = IOBuffer(sizehint=ncodeunits(pattern))
-    i = j = 1
-    while (j = findnext('{', pattern, j)) !== nothing
-        k = findnext('}', pattern, j)
-        isnothing(k) && break
-        b = min(something(findnext('|', pattern, j), k), k)
-        key, case = Symbol(SubString(pattern, j + 1, b - 1)), SubString(pattern, b + 1, k - 1)
-        start, j = j, k + 1
-        haskey(fills, key) && case in ("", "U", "L") || continue
-        s = string(fills[key])
-        print(io, SubString(pattern, i, start - 1), case == "U" ? uppercase(s) : case == "L" ? lowercase(s) : s)
-        i = j
-    end
-    print(io, SubString(pattern, i))
-    return String(take!(io))
 end
 
 # Whether one step's name equals the next's, which would make a whole range fetch a single file.
@@ -167,6 +147,7 @@ function _render(p::FilePattern, t)
     return String(take!(io))
 end
 
-_pattern(p::FilePattern) = join(x isa String ? x : x isa DatePart ? "{$(x.stop ? "t1" : "t"):$(x.body)}" : "{$(_kpstr(x))}" for x in p.parts)
+_pattern(p::FilePattern) = _pattern(p.parts)
+_pattern(parts) = join(x isa String ? x : x isa DatePart ? "{$(x.stop ? "t1" : "t"):$(x.body)}" : "{$(_kpstr(x))}" for x in parts)
 
 Base.show(io::IO, p::FilePattern) = print(io, "FilePattern(", repr(_pattern(p)), p.cadence == Day(1) ? "" : "; cadence = $(p.cadence)", ")")
