@@ -59,7 +59,7 @@ end
     )
 end
 
-Base.haskey(sl::SchemaLookup, key) = haskey(sl.schema, key) || haskey(getmeta(sl.data), key)
+Base.haskey(sl::SchemaLookup, key) = !isnothing(get(sl, key))
 
 # Accessor pattern for `resolve`: apply `accessor(data)` first, then
 # resolve `lookup` against the result.
