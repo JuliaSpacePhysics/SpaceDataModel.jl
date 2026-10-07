@@ -53,7 +53,6 @@ _is_valid(x) = applicable(isempty, x) ? !isempty(x) : true
 
 # Add Base.show methods for pretty printing
 function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractDataVariable}
-    ismissing(var) && return
     print(io, "$T: ")
     print_name(io, var)
     println(io)
