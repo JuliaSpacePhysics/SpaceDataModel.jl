@@ -29,6 +29,7 @@ end
     @test attrs[:desc] == schema(data, :desc) == "Velocity Data"
     @test attrs[:name] == "V"
     @test attrs[:units] == "km/s"
+    @test haskey(attrs, :desc) && !haskey(attrs, :validmin)
 end
 
 
