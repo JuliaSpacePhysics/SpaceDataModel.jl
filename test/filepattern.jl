@@ -6,7 +6,7 @@
 
     @test p(Date(2020, 10, 1); probe="ela", version="*") ==
           "https://data.elfin.ucla.edu/ela/l1/fgm/2020/ela_l1_fgs_20201001_v*.cdf"
-    @test p("2020-10-01"; probe="ela", version="*") == p(Date(2020, 10, 1); probe="ela", version="*")
+    @test p("2020-275"; probe="ela", version="*") == p(Date(2020, 10, 1); probe="ela", version="*")
 
     @test_throws ArgumentError p(Date(2020, 10, 1); probe="ela")
     @test endswith(p(Date(2020, 10, 1); probe="ela", version="03"), "_v03.cdf")
