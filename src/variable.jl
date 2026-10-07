@@ -5,8 +5,7 @@ A variable `v` of a type derived from `AbstractDataVariable` should at least imp
 
 Optional:
 
-* `tdimnum(v)`: the index of the time dimension
-* `times(v)`: the timestamps of the variable
+* `tdimnum(v)`: the index of the time dimension (`timedim`, `times` derive from it)
 * `units(v)`: the units of the variable
 * `getmeta(v)`: the metadata of the variable
 * `name(v)`: the name of the variable
