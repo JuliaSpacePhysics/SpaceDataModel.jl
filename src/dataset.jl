@@ -18,9 +18,6 @@ over a time range via [`getdata`](@ref).
 Dataset(name, source; selectors=(;), metadata=NoMetadata(), kwargs...) =
     Dataset(String(name), Selectors(selectors), source, merge(metadata, kwargs))
 
-# the default struct falls back to `===`, egal on those fields is pointer identity
-Base.:(==)(a::Dataset, b::Dataset) = eqfields(a, b)
-
 Base.getindex(ds::Dataset, var::Union{AbstractString,Symbol}) = Product(ds, var)
 
 selectors(ds) = ds.selectors
@@ -46,13 +43,17 @@ end
 
 Archive(pattern) = Archive(pattern, (paths, t0, t1) -> paths)
 
-Base.:(==)(a::Archive, b::Archive) = a.pattern == b.pattern && a.reader == b.reader
-
 function getdata(a::Archive, t0, t1; version="*", refresh=false, dir=datadir(), update=false, ntasks=4)
     from, to = _time(t0), _time(t1)
     urls = remotefiles(a.pattern, from, to; refresh, version)
     isempty(urls) && _no_files(a.pattern, from, to; version)
     return a.reader(localize(urls; dir, update, ntasks), from, to)
+end
+
+# The default `==` is `===`, which compares mutable fields (vectors, dicts) by identity.
+for T in (:DatePart, :FilePattern, :Dataset, :Archive)
+    @eval Base.:(==)(a::$T, b::$T) = eqfields(a, b)
+    @eval Base.hash(x::$T, h::UInt) = hashfields(x, h)
 end
 
 (ds::Dataset)(t0, t1; kwargs...) = getdata(ds, t0, t1; kwargs...)

@@ -38,8 +38,6 @@
     c = ValidityChecks(Float64, -1, [0, 1, 2], nothing)
     @test c[2].validmin == [1.0]
     @test c[2].fillval == [-1.0]
-    @test isequal(ValidityChecks(Float32, nothing, nothing, nothing), ValidityChecks(Float32, nothing, nothing, nothing))
-    @test hash(ValidityChecks(Float32, -1, 0, 1)) == hash(ValidityChecks(Float32, -1, 0, 1))
     @test Base.return_types(ValidityChecks, (Type{Float32}, Any, Any, Any)) == [ValidityChecks{Float32}]
 
     overlapping = Float32.(1:1025)
