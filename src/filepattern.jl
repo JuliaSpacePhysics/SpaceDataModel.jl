@@ -91,7 +91,7 @@ end
 
 # Fill `{key}`, `{key|U}` and `{key|L}` placeholders in a string; unfilled ones stay as written.
 # Delimiters are ASCII, so byte offsets around them are valid indices in any UTF-8 string.
-function _format(pattern::AbstractString, fills)
+function _fill_keys(pattern::AbstractString, fills)
     isempty(fills) && return String(pattern)
     io = IOBuffer(sizehint=ncodeunits(pattern))
     i = j = 1

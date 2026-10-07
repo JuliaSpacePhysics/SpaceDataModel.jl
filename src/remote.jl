@@ -63,17 +63,14 @@ rather than an error, since a gap in an archive is normal.
 Keywords fill `p`'s placeholders; `version` defaults to the `*` wildcard, picking the highest
 listed. `refresh=true` bypasses memoized directory listings.
 """
-function remotefiles(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
-    q = p(; version, kw...)
-    resolved = asyncmap(t -> resolve_url(q(t); refresh), _stepstarts(p, t0, t1); ntasks)
-    return String[u for u in resolved if !isnothing(u)]
-end
+remotefiles(p::FilePattern, t0, t1; kw...) = String[u for (_, u) in _resolve_steps(p, t0, t1; kw...) if !isnothing(u)]
+available(p::FilePattern, t0, t1; kw...) = DateTime[t for (t, u) in _resolve_steps(p, t0, t1; kw...) if !isnothing(u)]
 
-function available(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
+# Each step start with its URL, `nothing` where unpublished.
+function _resolve_steps(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
     q = p(; version, kw...)
     steps = _stepstarts(p, t0, t1)
-    resolved = asyncmap(t -> resolve_url(q(t); refresh), steps; ntasks)
-    return DateTime[t for (t, u) in zip(steps, resolved) if !isnothing(u)]
+    return zip(steps, asyncmap(t -> resolve_url(q(t); refresh), steps; ntasks))
 end
 
 _time(t::AbstractString) = parse_datetime(t)

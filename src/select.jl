@@ -76,7 +76,7 @@ function pin(ds, values; complete::Bool=false)
     isempty(sel) && return ds
     pinned = Selectors(Pair{Symbol,Domain}[_pin(ds, k, d, values, complete) for (k, d) in sel])
     fills = Selectors(Pair{Symbol,Domain}[p for p in pinned if _pinned(p.second)])
-    return setproperties(ds, (; name=_format(ds.name, fills), selectors=pinned, source=bind(ds.source, fills)))
+    return setproperties(ds, (; name=_fill_keys(ds.name, fills), selectors=pinned, source=bind(ds.source, fills)))
 end
 
 @noinline _unpinnable(ds, k, d) =
