@@ -38,8 +38,6 @@ _fit(v, n) = v isa AbstractVector && length(v) > 1 && length(v) != n ? (allequal
 _fields(c::ValidityChecks) = (c.fillval, c.validmin, c.validmax)
 _ncomponents(c::ValidityChecks) = max(length(c.fillval), length(c.validmin), length(c.validmax))
 Base.getindex(c::ValidityChecks, i) = ValidityChecks(map(v -> length(v) == 1 ? v : v[i isa Integer ? (i:i) : i], _fields(c))...)
-Base.isequal(a::ValidityChecks, b::ValidityChecks) = isequal(_fields(a), _fields(b))
-Base.hash(c::ValidityChecks, h::UInt) = hash(_fields(c), hash(ValidityChecks, h))
 
 """
     mask_invalid(A; fillval, validmin, validmax, dims = nothing)

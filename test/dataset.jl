@@ -11,6 +11,8 @@
     @test vocabulary(reg) == [:probe, :rate, :coord, :level]
     @test reg[] == Dataset("daily_8sec", Archive(FilePattern("8sec_{t:yyyymmdd}.cdf")); selectors=(; rate="8sec"))
     @test reg[].source.pattern(Date(2017, 3, 27)) == "8sec_20170327.cdf"
+    @test length(Set([reg[], reg[]])) == 1
+    @test reg[] != Dataset("daily_8sec", reg[].source; selectors=(; rate="8sec"), note=1)
     # A default the dataset does not carry is ignored; a supplied selector it lacks excludes it.
     ds = reg[rate="64hz"]
     @test reg[rate = "64hz"] == Dataset("hz_64hz", Archive(FilePattern("TS1/ts1_64hz_dsi_{t:yyyymmdd}.cdf")); selectors=(; probe="ts1", rate="64hz", coord="dsi"))

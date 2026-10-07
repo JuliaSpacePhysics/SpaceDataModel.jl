@@ -9,7 +9,6 @@ struct DatePart
 end
 DatePart(body::AbstractString, stop::Bool=false) = DatePart(body, _tokens(body), stop)
 
-Base.:(==)(a::DatePart, b::DatePart) = eqfields(a, b)
 
 # A keyword placeholder; `case` is 'U'/'L' for `{name|U}`/`{name|L}`, '-' for `{name}`.
 struct KeyPart
@@ -47,7 +46,6 @@ struct FilePattern{P<:Period}
     cadence::P
 end
 
-Base.:(==)(a::FilePattern, b::FilePattern) = eqfields(a, b)
 
 function FilePattern(pattern::AbstractString; cadence=Day(1), kw...)
     parts = _parse_pattern(pattern)
