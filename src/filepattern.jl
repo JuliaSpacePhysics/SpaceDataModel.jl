@@ -156,7 +156,7 @@ function _placeholder(body, s)
 end
 
 function _render(p::FilePattern, t)
-    start = floor(DateTime(t), p.cadence)
+    start = floor(DateTime(_time(t)), p.cadence)
     stop = start + p.cadence - Millisecond(1)  # `{t1:…}`: a monthly file reads `…_20101201_20101231.nc`.
     io = IOBuffer()
     for x in p.parts
