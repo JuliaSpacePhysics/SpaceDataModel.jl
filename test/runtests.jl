@@ -31,6 +31,8 @@ end
     @test parse_datetime("1999-032T02:03:05") == DateTime(1999, 2, 1, 2, 3, 5, 0)
     @test parse_datetime("1999-032T02:04") == DateTime(1999, 2, 1, 2, 4, 0, 0)
     @test parse_datetime("1999-032T02:04:11.041") == DateTime(1999, 2, 1, 2, 4, 11, 41)
+    @test parse_datetime("2001-01-01 05:00:00.5") == parse_datetime("2001-01-01/05:00:00.5") == DateTime(2001, 1, 1, 5, 0, 0, 500)
+    @test parse_datetime("1999-032 02:04") == parse_datetime("1999-032/02:04") == DateTime(1999, 2, 1, 2, 4)
 
     dts = [
         "1989", "1989-01", "1989-001",
