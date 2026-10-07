@@ -103,15 +103,17 @@ const _LISTINGS_LOCK = ReentrantLock()
 # libcurl reports success as status 0 for schemes carrying no numeric status, such as file://.
 _ok(resp) = resp isa Downloads.Response && (iszero(resp.status) || 200 <= resp.status < 300)
 
-# An absent directory (HTTP 404/410; curl 37 for a `file://` path) is a gap like an empty one.
-_absent(resp) = resp isa Downloads.Response ? resp.status in (404, 410) : resp.code == 37
+# An absent directory is a gap like an empty one. curl reports a missing and an unreadable
+# `file://` path alike, as code 37.
+_absent(url, resp) = resp isa Downloads.Response ? resp.status in (404, 410) :
+    resp.code == 37 && !ispath(chopprefix(url, "file://"))
 
 # File names in a remote directory; `nothing` for a failure that may be transient.
 function _listing(url)
     io = IOBuffer()
     resp = request(url; output=io, throw=false)
     _ok(resp) && return _index_names(String(take!(io)))
-    _absent(resp) && return String[]
+    _absent(url, resp) && return String[]
     @warn "Remote directory not listed" url reason = resp isa Downloads.Response ? "HTTP $(resp.status)" : resp.message
     return nothing
 end
