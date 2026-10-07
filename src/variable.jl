@@ -84,7 +84,7 @@ Base.similar(A::DataVariable, ::Type{T}, dims::Dims) where {T} = DataVariable(si
 using Base.Broadcast: ArrayStyle, Broadcasted
 Base.BroadcastStyle(::Type{<:AbstractDataVariable}) = ArrayStyle{AbstractDataVariable}()
 
-Base.similar(bc::Broadcasted{ArrayStyle{AbstractDataVariable}}, ::Type{T}) where {T} = similar(find_datavariable(bc), T)
+Base.similar(bc::Broadcasted{ArrayStyle{AbstractDataVariable}}, ::Type{T}) where {T} = similar(find_datavariable(bc), T, axes(bc))
 
 find_datavariable(x::Broadcasted) = find_datavariable(x.args)
 function find_datavariable(x::Tuple)
