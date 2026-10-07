@@ -19,8 +19,6 @@ reg = Registry("EPD", [epd]; defaults = (; probe = "ela"))
 filter(reg; probe = "elb")    # discovery path: keeps matching rows
 ds = reg[probe = "elb"]       # select the only matching dataset, or an error listing the domains
 getdata(ds, "2021-08-08", "2021-08-09")    # enumerate remote files, cache, open
-flux = ds["elb_pef"]                       # a Product: the dataset with one variable pinned
-getdata(flux, "2021-08-08", "2021-08-09")
 ```
 
 ## Metadata Schemas
