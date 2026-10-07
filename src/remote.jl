@@ -18,7 +18,7 @@ localize(urls::AbstractVector; ntasks=4, kw...) =
 
 function localize(url; dir=datadir(), update=false)
     _stale(_, update::Bool) = update
-    _stale(path, age::Period) = now() - unix2datetime(mtime(path)) > age
+    _stale(path, age::Period) = unix2datetime(mtime(path)) + age < now(UTC)
 
     path = local_path(url, dir)
     return isfile(path) && !_stale(path, update) ? path : _download_atomic(url, path)
