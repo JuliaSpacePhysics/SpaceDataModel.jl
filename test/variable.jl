@@ -5,6 +5,7 @@
     result1 = var .+ 1
     @test result1 isa DataVariable
     @test parent(result1) == [2.0, 3.0, 4.0]
+    @test size(var .+ ones(3, 2)) == (3, 2)
 end
 
 @testitem "dims ignores a non-AbstractDataVariable dims field" begin
