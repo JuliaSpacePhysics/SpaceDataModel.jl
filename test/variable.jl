@@ -12,3 +12,9 @@ end
     # `Base.ReshapedArray` stores its size in a `dims` field
     @test SpaceDataModel.dims(reshape(view(collect(1:6), :), 2, 3), 1) == 1:2
 end
+
+@testitem "units follows the metadata schema" begin
+    using SpaceDataModel: DataVariable
+    @test units(DataVariable([1.0], Dict("CATDESC" => "B", "UNITS" => "nT"))) == "nT"
+    @test units(DataVariable([1.0], Dict("units" => "m/s"))) == "m/s"
+end
