@@ -103,11 +103,15 @@ const _LISTINGS_LOCK = ReentrantLock()
 # libcurl reports success as status 0 for schemes carrying no numeric status, such as file://.
 _ok(resp) = resp isa Downloads.Response && (iszero(resp.status) || 200 <= resp.status < 300)
 
-# File names in a remote directory
+# An absent directory (HTTP 404/410; curl 37 for a `file://` path) is a gap like an empty one.
+_absent(resp) = resp isa Downloads.Response ? resp.status in (404, 410) : resp.code == 37
+
+# File names in a remote directory; `nothing` for a failure that may be transient.
 function _listing(url)
     io = IOBuffer()
     resp = request(url; output=io, throw=false)
     _ok(resp) && return _index_names(String(take!(io)))
+    _absent(resp) && return String[]
     @warn "Remote directory not listed" url reason = resp isa Downloads.Response ? "HTTP $(resp.status)" : resp.message
     return nothing
 end
@@ -117,7 +121,12 @@ function tryreaddir(path; refresh=false)::Union{Nothing,Vector{String}}
     task = lock(_LISTINGS_LOCK) do
         refresh || !haskey(_LISTINGS, url) ? (_LISTINGS[url] = Threads.@spawn _listing(url)) : _LISTINGS[url]
     end
-    return fetch(task)
+    names = fetch(task)
+    # Not memoized, so the next call retries rather than reading the directory as a gap for the session.
+    isnothing(names) && lock(_LISTINGS_LOCK) do
+        get(_LISTINGS, url, nothing) === task && delete!(_LISTINGS, url)
+    end
+    return names
 end
 
 # Catch href attributes; ignore parent links, subdirectories and absolute site navigation.

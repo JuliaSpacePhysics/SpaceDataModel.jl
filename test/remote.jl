@@ -3,8 +3,14 @@
     f = tempname()
     write(f, "<a href=\"x.cdf\">x</a>")
     @test _listing("file://" * f) == ["x.cdf"]
-    # A directory that cannot be listed is a gap, and says why.
-    @test isnothing(@test_logs (:warn, "Remote directory not listed") _listing("file://" * tempname()))
+    @test (@test_logs _listing("file://" * tempname())) == String[]
+end
+
+@testitem "failed listing is retried" begin
+    using SpaceDataModel: tryreaddir, _LISTINGS
+    url = "http://127.0.0.1:1/"
+    @test isnothing(@test_logs (:warn, "Remote directory not listed") match_mode=:any tryreaddir(url))
+    @test !haskey(_LISTINGS, url)
 end
 
 @testitem "index parsing" begin
