@@ -22,23 +22,13 @@ function _println_value(io, value::Union{AbstractVector,AbstractDict,Tuple,Named
     end
 end
 
-@generated function Base.show(io::IO, ::MIME"text/plain", p::T) where {T<:_Model}
-    fs = setdiff(fieldnames(T), (:name,))
-    exs = map(fs) do f
-        sf = QuoteNode(f)
-        title = titlecase(String(f))
-        quote
-            v = getfield(p, $sf)
-            if !_isdefault(v)
-                println(io)
-                print(io, "  ", $title, ": ")
-                _println_value(io, v)
-            end
-        end
-    end
-    return quote
-        printstyled(io, nameof(T), ": "; bold=true)
-        printstyled(io, name(p), color=:yellow)
-        $(exs...)
+function Base.show(io::IO, ::MIME"text/plain", p::_Model)
+    printstyled(io, nameof(typeof(p)), ": "; bold=true)
+    printstyled(io, name(p), color=:yellow)
+    for f in fieldnames(typeof(p))
+        v = getfield(p, f)
+        (f === :name || _isdefault(v)) && continue
+        print(io, "\n  ", titlecase(String(f)), ": ")
+        _println_value(io, v)
     end
 end

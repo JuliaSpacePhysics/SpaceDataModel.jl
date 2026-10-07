@@ -43,9 +43,9 @@ end
     @test_throws ArgumentError FilePattern("f_{t:}.cdf")
 
     # A step whose URL repeats the last would fetch one file for a whole range.
-    @test_throws ArgumentError FilePattern("f_{t:yyyy}.cdf"; cadence=Month(1))
+    @test_throws ArgumentError FilePattern("f_{t:yyyy}.cdf"; cadence=Day(7))
     @test_throws ArgumentError FilePattern("f_{t:dd}.cdf"; cadence=Month(1))
-    @test_throws ArgumentError FilePattern("f_{t:yyyymmddHH}.cdf"; cadence=Minute(10))
+    @test_throws ArgumentError FilePattern("f_{t:yyyymmdd}.cdf"; cadence=Hour(5))
     @test FilePattern("f_{t:yyyymm}01.cdf"; cadence=Month(1)) isa FilePattern
     @test FilePattern("f_{t:yyyymmdd}.cdf"; cadence=Week(1)) isa FilePattern
 end

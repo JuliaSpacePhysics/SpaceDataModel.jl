@@ -35,8 +35,7 @@ A name may carry more than one, as MAVEN's `…_v02_r00.cdf` does; fields rank l
 """
 function resolve_url(url; refresh=false)
     occursin('*', url) || return url
-    name = basename(url)
-    dir = url[1:(end-length(name))]
+    dir, name = _split_url(url)
     occursin('*', dir) &&
         throw(ArgumentError("wildcard outside the file name of $(repr(url)); a directory cannot be listed unless it is named"))
     re = _name_regex(name)
@@ -70,8 +69,14 @@ available(p::FilePattern, t0, t1; kw...) = DateTime[t for (t, u) in _resolve_ste
 function _resolve_steps(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
     q = p(; version, kw...)
     steps = _stepstarts(p, t0, t1)
-    return zip(steps, asyncmap(t -> resolve_url(q(t); refresh), steps; ntasks))
+    urls = map(q, steps)
+    refresh && lock(_LISTINGS_LOCK) do
+        foreach(u -> delete!(_LISTINGS, first(_split_url(u))), urls)
+    end
+    return zip(steps, asyncmap(resolve_url, urls; ntasks))
 end
+
+_split_url(url) = (name = basename(url); (url[1:(end - ncodeunits(name))], name))
 
 _time(t::AbstractString) = parse_datetime(t)
 _time(t::Date) = DateTime(t)
@@ -84,14 +89,12 @@ function _stepstarts(p::FilePattern, t0, t1)
     return floor(a, p.cadence):p.cadence:(ceil(b, p.cadence)-p.cadence)
 end
 
-_hint() = "`available(ds, t0, t1)` lists the steps this archive does publish."
-
 @noinline function _no_files(p::FilePattern, t0, t1; version="*")
     n = length(_stepstarts(p, t0, t1))
     throw(ArgumentError("""
         no files published over $t0 .. $t1 ($n steps of $(p.cadence)) for
           $(_pattern(p(; version)))
-        $(_hint())"""))
+        `available(ds, t0, t1)` lists the steps this archive does publish."""))
 end
 
 const _LISTINGS = Dict{String,Task}()
@@ -137,8 +140,11 @@ end
 
 # `*` stands for a version field, so it matches digits and the separators archives write between
 # them -- not `[^/]*`, which would let a sibling like `…_v01_beta.cdf` answer for `…_v*.cdf`.
-_name_regex(name) = Regex("^" * join((_escape(s) for s in split(name, '*')), "([0-9][0-9._-]*)") * "\\z")
-_escape(s) = replace(s, r"[\\^$.|?*+()\[\]{}]" => s"\\\0")
+# `Regex * String` quotes the literal pieces.
+function _name_regex(name)
+    pieces = split(name, '*')
+    return *(r"^", first(pieces), (r"([0-9][0-9._-]*)" * p for p in pieces[2:end])..., r"\z")
+end
 
 # Ordering on the version's integer fields so `v1.1.10` outranks `v1.1.2`.
 _numkey(v) = Int[parse(Int, m.match) for m in eachmatch(r"\d+", v)]

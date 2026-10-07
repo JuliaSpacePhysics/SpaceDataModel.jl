@@ -58,12 +58,12 @@ end
 
 (ds::Dataset)(t0, t1; kwargs...) = getdata(ds, t0, t1; kwargs...)
 
-available(a::Archive, args...; refresh=false, version="*") = available(a.pattern, args...; refresh, version)
-remotefiles(a::Archive, args...; refresh=false, version="*") = remotefiles(a.pattern, args...; refresh, version)
+available(a::Archive, args...; kw...) = available(a.pattern, args...; kw...)
+remotefiles(a::Archive, args...; kw...) = remotefiles(a.pattern, args...; kw...)
 remotefiles(ds::Dataset, args...; kwargs...) = remotefiles(ds.source, args...; kwargs...)
 
 # Selection pins a dataset by rebuilding its source with the pinned values (`pin`).
-bind(src, fills) = src
-bind(a::Archive, fills) = Archive(_bind(a.pattern, fills), a.reader)
+_bind(src, fills) = src
+_bind(a::Archive, fills) = Archive(_bind(a.pattern, fills), a.reader)
 
 Base.show(io::IO, ds::Dataset) = print(io, name(ds), " ", selectors(ds))

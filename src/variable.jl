@@ -23,16 +23,14 @@ for f in (:size, :Array)
     @eval Base.$f(var::AbstractDataVariable) = $f(parent(var))
 end
 
-for f in (:getindex,)
-    @eval @propagate_inbounds Base.$f(var::AbstractDataVariable, I::Vararg{Int}) = $f(parent(var), I...)
-    @eval Base.$f(var::AbstractDataVariable, s::Union{String, Symbol}) = $f(meta(var), s)
-end
+@propagate_inbounds Base.getindex(var::AbstractDataVariable, I::Vararg{Int}) = getindex(parent(var), I...)
+Base.getindex(var::AbstractDataVariable, s::Union{String, Symbol}) = getindex(getmeta(var), s)
 
 @propagate_inbounds Base.setindex!(var::AbstractDataVariable, v, I::Vararg{Int}) = setindex!(parent(var), v, I...)
-Base.setindex!(var::AbstractDataVariable, v, s::Union{String, Symbol}) = setindex!(meta(var), v, s)
+Base.setindex!(var::AbstractDataVariable, v, s::Union{String, Symbol}) = setindex!(getmeta(var), v, s)
 
-Base.get(var::AbstractDataVariable, s::Union{String, Symbol}, d = nothing) = _get(meta(var), s, d)
-Base.get(f::Function, var::AbstractDataVariable, s::Union{String, Symbol}) = get(f, meta(var), s)
+Base.get(var::AbstractDataVariable, s::Union{String, Symbol}, d = nothing) = _get(getmeta(var), s, d)
+Base.get(f::Function, var::AbstractDataVariable, s::Union{String, Symbol}) = get(f, getmeta(var), s)
 
 _timerange_str(times) = "Time Range: $(minimum(times)) to $(maximum(times))"
 
@@ -74,6 +72,8 @@ struct DataVariable{T, N, A <: AbstractArray{T, N}, D} <: AbstractDataVariable{T
     data::A
     metadata::D
 end
+
+Base.IndexStyle(::Type{<:DataVariable{T, N, A}}) where {T, N, A} = IndexStyle(A)
 
 Base.similar(A::DataVariable, ::Type{T}, dims::Dims) where {T} = DataVariable(similar(A.data, T, dims), A.metadata)
 

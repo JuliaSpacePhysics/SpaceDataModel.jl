@@ -2,7 +2,6 @@
 name(v) = @getproperty v (:name,) getmeta(v, "name", "")
 
 
-function unwrap end
 unwrap(x) = x
 
 # Dimension
@@ -81,7 +80,10 @@ function setmeta! end
 function setmeta!(x, args...; kw...)
     m = getmeta(x)
     ismutable(m) || error("Metadata is not mutable, use `setmeta` instead")
-    set!(m, args...; kw...)
+    for a in args
+        a isa Pair ? push!(m, a) : merge!(m, a)
+    end
+    merge!(m, kw)
     return x
 end
 
