@@ -26,11 +26,11 @@ Pass a type `T<:Real` to return the cadence in seconds as that type.
 cadence(times::AbstractRange) = step(times)
 function cadence(times; rtol = 1.0e-3, check = true)
     N = length(times)
-    @assert N > 1
+    N > 1 || throw(ArgumentError("cadence needs at least two samples, got $N"))
     dt0 = /ₜ(times[N] - times[1], N - 1)
     check && @inbounds for i in 1:(N - 1)
         dt = times[i + 1] - times[i]
-        @assert ≃(dt, dt0; rtol) "Data is not approximately uniformly sampled."
+        ≃(dt, dt0; rtol) || throw(ArgumentError("Data is not approximately uniformly sampled."))
     end
     return dt0
 end

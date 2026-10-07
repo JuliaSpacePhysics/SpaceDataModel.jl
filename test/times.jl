@@ -29,7 +29,7 @@ end
 
     # Non-uniform sampling should error
     times_bad = [0.0, 1.0, 3.0, 4.0]
-    @test_throws AssertionError cadence(times_bad)
+    @test_throws ArgumentError cadence(times_bad)
     @test cadence(times_bad; check = false) ≈ 4.0 / 3
 
     # Dates support
