@@ -14,7 +14,7 @@ Product(dataset, variable; metadata=NoMetadata(), kwargs...) =
 
 Base.parent(p::Product) = p.dataset
 name(p::Product) = getmeta(p, "name", p.variable)
-getdata(p::Product, args...; kwargs...) = getdata(parent(p), args...; kwargs...)[p.variable]
+getdata(p::Product, t0, t1; kwargs...) = getdata(parent(p), t0, t1; kwargs...)[p.variable]
 available(p::Product, args...; kwargs...) = available(parent(p), args...; kwargs...)
 
 
@@ -32,8 +32,12 @@ end
 Transformed(f, source; metadata=NoMetadata(), kwargs...) =
     Transformed(f, source, merge(metadata, kwargs))
 
-getdata(t::Transformed, args...; kwargs...) = t.f(getdata(t.source, args...; kwargs...))
+getdata(t::Transformed, t0, t1; kwargs...) = t.f(getdata(t.source, t0, t1; kwargs...))
 available(t::Transformed, args...; kwargs...) = available(t.source, args...; kwargs...)
 
-∘(f, s::Union{Dataset,Product}) = Transformed(f, s)
+getdata(x::Union{AbstractDataset,Product,Transformed}, trange::Union{Tuple,Pair,AbstractVector}; kwargs...) =
+    getdata(x, trange...; kwargs...)
+(x::Union{AbstractDataset,Product,Transformed})(args...; kwargs...) = getdata(x, args...; kwargs...)
+
+∘(f, s::Union{AbstractDataset,Product}) = Transformed(f, s)
 ∘(f, t::Transformed) = Transformed(f ∘ t.f, t.source, t.metadata)

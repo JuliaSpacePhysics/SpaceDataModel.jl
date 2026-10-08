@@ -1,4 +1,11 @@
 """
+    AbstractDataset
+
+Supertype for package dataset types; contract in the README (Data Sources).
+"""
+abstract type AbstractDataset end
+
+"""
     Registry(name, datasets; defaults=(;), metadata=NoMetadata(), kw...)
 
 A relation of [`Dataset`](@ref)s: rows sharing a selector vocabulary. 

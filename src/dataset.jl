@@ -1,4 +1,4 @@
-struct Dataset{S,B,MD}
+struct Dataset{S,B,MD} <: AbstractDataset
     name::String
     selectors::S
     source::B
@@ -18,12 +18,11 @@ over a time range via [`getdata`](@ref).
 Dataset(name, source; selectors=(;), metadata=NoMetadata(), kwargs...) =
     Dataset(String(name), Selectors(selectors), source, merge(metadata, kwargs))
 
-Base.getindex(ds::Dataset, var::Union{AbstractString,Symbol}) = Product(ds, var)
+Base.getindex(ds::AbstractDataset, var::Union{AbstractString,Symbol}) = Product(ds, var)
 
 selectors(ds) = ds.selectors
 
-getdata(ds::Dataset, args...; kwargs...) = getdata(ds.source, args...; kwargs...)
-getdata(ds::Dataset, trange::Union{Tuple,Pair,AbstractVector}; kwargs...) = getdata(ds, trange...; kwargs...)
+getdata(ds::Dataset, t0, t1; kwargs...) = getdata(ds.source, t0, t1; kwargs...)
 
 available(ds::Dataset, args...; kwargs...) = available(ds.source, args...; kwargs...)
 
@@ -57,8 +56,6 @@ for T in (:DatePart, :FilePattern, :Dataset, :Archive)
     @eval Base.isequal(a::$T, b::$T) = eqfields(a, b, isequal)
     @eval Base.hash(x::$T, h::UInt) = hashfields(x, h)
 end
-
-(ds::Dataset)(t0, t1; kwargs...) = getdata(ds, t0, t1; kwargs...)
 
 available(a::Archive, args...; kw...) = available(a.pattern, args...; kw...)
 remotefiles(a::Archive, args...; kw...) = remotefiles(a.pattern, args...; kw...)
