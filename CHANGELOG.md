@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- `SpaceDataModel.AbstractDataset`: supertype for package dataset types.
+- `Product` and `Transformed` are callable like `Dataset`: `x(t0, t1)`.
+- `SpaceDataModel.Testing.test_dataset` checks a dataset against the contract (README, Data Sources); loaded with `Test`.
+
 ### Changed
 
 - `refresh=true` re-lists each directory once per call, not once per step.

@@ -29,6 +29,10 @@ Times in `[t0, t1)` at which `x` has data.
 """
 function available end
 
+module Testing
+function test_dataset end
+end
+
 include("utils.jl")
 include("metadata.jl")
 include("filepattern.jl");  export FilePattern

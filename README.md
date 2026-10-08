@@ -21,6 +21,23 @@ ds = reg[probe = "elb"]       # select the only matching dataset, or an error li
 getdata(ds, "2021-08-08", "2021-08-09")    # enumerate remote files, cache, open
 ```
 
+## Data Sources
+
+`getdata(x, t0, t1)` is the one fetch verb; `x` is a dataset, a variable `ds[var]` (`Product`), a `Transformed` (`f ∘ x`), or a function `(t0, t1) -> data`.
+A package adds a dataset type; indexing, calling and composition come from `SpaceDataModel.AbstractDataset`:
+
+```julia
+struct MyDataset <: SpaceDataModel.AbstractDataset; id::String; end
+SpaceDataModel.getdata(ds::MyDataset, t0, t1; kw...) = ...            # all variables, indexable by name
+SpaceDataModel.getdata(p::Product{MyDataset}, t0, t1; kw...) = ...    # optional: fetch `p.variable` directly
+```
+
+Contract: data covers `[t0, t1)` (half-open); `getdata(ds, t0, t1)[v]` equals `getdata(ds[v], t0, t1)`.
+A range without data should return an empty variable (`Archive` throws instead: it has no file to build one from).
+Check a dataset against the contract in its tests with `using Test; SpaceDataModel.Testing.test_dataset(ds, var, t0, t1; empty)`.
+
+`Dataset` is the `AbstractDataset` for file archives: a name templated over selector domains, and a source such as `Archive`, see Quick Start.
+
 ## Metadata Schemas
 
 Resolve semantic attributes (`:name`, `:unit`, `:desc`, …) against heterogeneous metadata formats (ISTP, HAPI, Madrigal).

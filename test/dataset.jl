@@ -84,3 +84,44 @@ end
     @test SpaceDataModel.getmeta(p, :labels) == ["Y"]
     @test SpaceDataModel.name(p) == "cda/X/y"
 end
+
+@testitem "test_dataset" begin
+    using Test
+    using Dates
+    using DimensionalData: DimArray, Ti
+    using SpaceDataModel: SpaceDataModel, AbstractDataset, Product, getdata
+    using SpaceDataModel.Testing: test_dataset
+
+    # Records instead of throwing, so a violating dataset can be asserted to fail.
+    # test_dataset's own @testset inherits this type, hence kw..., finish and recursive fails.
+    struct Recorder <: Test.AbstractTestSet
+        description::String
+        results::Vector{Any}
+    end
+    Recorder(desc; kw...) = Recorder(desc, [])
+    Test.record(ts::Recorder, r) = push!(ts.results, r)
+    Test.finish(ts::Recorder) = (Test.get_testset_depth() > 0 && Test.record(Test.get_testset(), ts); ts)
+    fails(ts) = any(r -> r isa Recorder ? fails(r) : !(r isa Test.Pass), ts.results)
+    check(ds) = fails(@testset Recorder "check" begin
+        test_dataset(ds, "y", DateTime(2020, 1, 1), DateTime(2020, 1, 1, 3); empty=(DateTime(2021), DateTime(2021, 1, 2)))
+    end)
+
+    struct Toy <: AbstractDataset
+        closed::Bool  # includes t1: violates the half-open contract
+        direct::Int   # offset the direct path adds: violates whole[var] == ds[var]
+    end
+    ts = DateTime(2020, 1, 1):Hour(1):DateTime(2020, 1, 2)
+    function series(ds, t0, t1, offset=0)
+        sel = filter(t -> t0 <= t && (ds.closed ? t <= t1 : t < t1), ts)
+        DimArray(collect(1.0:length(sel)) .+ offset, Ti(sel))
+    end
+    SpaceDataModel.getdata(ds::Toy, t0, t1) = Dict("y" => series(ds, t0, t1))
+    SpaceDataModel.getdata(p::Product{Toy}, t0, t1) = series(parent(p), t0, t1, parent(p).direct)
+
+    @test !check(Toy(false, 0))
+    @test check(Toy(true, 0))
+    @test check(Toy(false, 1))
+    # A range tuple reaches the `Product{Toy}` override, not the parent's whole-dataset path.
+    p = Toy(false, 1)["y"]
+    @test getdata(p, (DateTime(2020, 1, 1), DateTime(2020, 1, 2))) == getdata(p, DateTime(2020, 1, 1), DateTime(2020, 1, 2))
+end
