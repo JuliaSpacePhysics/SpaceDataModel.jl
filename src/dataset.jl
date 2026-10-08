@@ -22,7 +22,7 @@ Base.getindex(ds::AbstractDataset, var::Union{AbstractString,Symbol}) = Product(
 
 selectors(ds) = ds.selectors
 
-getdata(ds::Dataset, t0, t1; kwargs...) = getdata(ds.source, t0, t1; kwargs...)
+_getdata(ds::Dataset, t0, t1; kwargs...) = getdata(ds.source, t0, t1; kwargs...)
 
 available(ds::Dataset, args...; kwargs...) = available(ds.source, args...; kwargs...)
 
@@ -35,18 +35,17 @@ A source mirroring a URL-per-step archive: [`remotefiles`](@ref) enumerates,
 Unpublished steps are dropped, a gap being normal; a range publishing nothing throws, since no
 reader can open an empty file list.
 """
-struct Archive{P,R}
+struct Archive{P,R} <: DataSource
     pattern::P
     reader::R
 end
 
 Archive(pattern) = Archive(pattern, (paths, t0, t1) -> paths)
 
-function getdata(a::Archive, t0, t1; version="*", refresh=false, dir=datadir(), update=false, ntasks=4)
-    from, to = _time(t0), _time(t1)
-    urls = remotefiles(a.pattern, from, to; refresh, version)
-    isempty(urls) && _no_files(a.pattern, from, to; version)
-    return a.reader(localize(urls; dir, update, ntasks), from, to)
+function _getdata(a::Archive, t0, t1; version="*", refresh=false, dir=datadir(), update=false, ntasks=4)
+    urls = remotefiles(a.pattern, t0, t1; refresh, version)
+    isempty(urls) && _no_files(a.pattern, t0, t1; version)
+    return a.reader(localize(urls; dir, update, ntasks), t0, t1)
 end
 
 # The default `==` is `===`, which compares mutable fields (vectors, dicts) by identity.

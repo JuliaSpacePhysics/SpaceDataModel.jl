@@ -23,14 +23,18 @@ getdata(ds, "2021-08-08", "2021-08-09")    # enumerate remote files, cache, open
 
 ## Data Sources
 
-`getdata(x, t0, t1)` is the one fetch verb; `x` is a dataset, a variable `ds[var]` (`Product`), a `Transformed` (`f ∘ x`), or a function `(t0, t1) -> data`.
-A package adds a dataset type; indexing, calling and composition come from `SpaceDataModel.AbstractDataset`:
+`getdata(x, t0, t1)` is the one fetch verb; `x` is a `SpaceDataModel.DataSource` or a function with `(t0, t1) -> data`.
+`AbstractDataset <: DataSource` adds indexable variables: `ds[var]` is a `Product`.
+
+A package adds a dataset type, or a `DataSource` for a standalone variable:
 
 ```julia
 struct MyDataset <: SpaceDataModel.AbstractDataset; id::String; end
-SpaceDataModel.getdata(ds::MyDataset, t0, t1; kw...) = ...            # all variables, indexable by name
-SpaceDataModel.getdata(p::Product{MyDataset}, t0, t1; kw...) = ...    # optional: fetch `p.variable` directly
+SpaceDataModel.getdata(ds::MyDataset, t0::DateTime, t1::DateTime; kw...) = ...    # all variables, indexable by name
+SpaceDataModel.getdata(p::Product{MyDataset}, t0::DateTime, t1::DateTime; kw...) = ...  # optional: fetch `p.variable` directly
 ```
+
+`getdata` converts time strings (`"2020-001"`, `"2020-01-01 12:00"`) and `Date`s to `DateTime` before dispatching on a `DataSource`.
 
 Contract: data covers `[t0, t1)` (half-open); `getdata(ds, t0, t1)[v]` equals `getdata(ds[v], t0, t1)`.
 A range without data should return an empty variable (`Archive` throws instead: it has no file to build one from).

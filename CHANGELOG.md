@@ -4,12 +4,13 @@
 
 ### Added
 
+- `SpaceDataModel.DataSource`: supertype of `AbstractDataset`, `Product`, `Transformed` and `Archive`; subtypes are callable (`x(t0, t1)`).
 - `SpaceDataModel.AbstractDataset`: supertype for package dataset types.
-- `Product` and `Transformed` are callable like `Dataset`: `x(t0, t1)`.
 - `SpaceDataModel.Testing.test_dataset` checks a dataset against the contract (README, Data Sources); loaded with `Test`.
 
 ### Changed
 
+- `getdata` on a `DataSource` converts time strings and `Date`s to `DateTime` before dispatch, so methods may type `t0, t1` as `DateTime`.
 - `refresh=true` re-lists each directory once per call, not once per step.
 
 ### Fixed

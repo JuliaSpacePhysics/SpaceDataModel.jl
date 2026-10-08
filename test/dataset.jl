@@ -125,3 +125,21 @@ end
     p = Toy(false, 1)["y"]
     @test getdata(p, (DateTime(2020, 1, 1), DateTime(2020, 1, 2))) == getdata(p, DateTime(2020, 1, 1), DateTime(2020, 1, 2))
 end
+
+@testitem "DataSource time normalization" begin
+    using Dates
+    using SpaceDataModel: SpaceDataModel, AbstractDataset, DataSource, Dataset, Product, getdata
+
+    struct Typed <: AbstractDataset end
+    SpaceDataModel.getdata(::Typed, t0::DateTime, t1::DateTime) = Dict("y" => (:whole, t0, t1))
+    SpaceDataModel.getdata(::Product{Typed}, t0::DateTime, t1::DateTime) = (:direct, t0, t1)
+    struct NoMethod <: DataSource end
+
+    t0, t1 = DateTime(2020, 1, 1), DateTime(2020, 1, 2, 12)
+    @test getdata(Typed(), "2020-01-01", "2020-01-02T12:00")["y"] == (:whole, t0, t1)
+    # A string range must reach the typed `Product` override
+    @test Typed()["y"]("2020-001", "2020-01-02 12:00") == (:direct, t0, t1)
+    @test (last ∘ Typed()["y"])((Date(2020, 1, 1), t1)) == t1
+    @test getdata(Dataset("x", (a, b) -> (a, b)), "2020-01-01", Date(2020, 1, 2)) == (t0, DateTime(2020, 1, 2))
+    @test_throws ArgumentError getdata(NoMethod(), "2020-01-01", "2020-01-02")
+end
