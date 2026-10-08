@@ -1,9 +1,7 @@
-_datasets(reg) = values(reg.datasets)
-
 """Selector names any of the registry's datasets carries."""
 function vocabulary(reg::Registry)
     names = Symbol[]
-    for ds in _datasets(reg), k in keys(selectors(ds))
+    for ds in values(reg), k in keys(selectors(ds))
         k in names || push!(names, k)
     end
     return names
@@ -19,7 +17,7 @@ _defaults_match(ds, defaults, sel) =
 
 _check_vocabulary(reg, sel) =
     for k in keys(sel)
-        any(ds -> haskey(selectors(ds), k), _datasets(reg)) || _unknown_selectors(reg, keys(sel))
+        any(ds -> haskey(selectors(ds), k), values(reg)) || _unknown_selectors(reg, keys(sel))
     end
 
 """
@@ -31,7 +29,7 @@ Base.filter(reg::Registry; kw...) = filter(reg, Selectors(kw))
 
 function Base.filter(reg::Registry, sel::Selectors)
     _check_vocabulary(reg, sel)
-    rows = [pin(ds, sel) for ds in _datasets(reg) if _supplied_match(ds, sel)]
+    rows = [pin(ds, sel) for ds in values(reg) if _supplied_match(ds, sel)]
     return setproperties(reg, (; datasets=rows, defaults=merge(reg.defaults, sel)))
 end
 
@@ -52,7 +50,7 @@ function select(reg::Registry, sel::Selectors)
     return pin(hit[1], merge(reg.defaults, sel); complete=true)
 end
 
-_candidates(reg, sel) = Iterators.filter(ds -> _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel), _datasets(reg))
+_candidates(reg, sel) = Iterators.filter(ds -> _supplied_match(ds, sel) && _defaults_match(ds, reg.defaults, sel), values(reg))
 
 _pinned(d) = d isa String
 
@@ -93,7 +91,7 @@ end
 
 @noinline function _no_single_dataset(reg, sel)
     cands = collect(_candidates(reg, sel))
-    listed = isempty(cands) ? _datasets(reg) : cands
+    listed = isempty(cands) ? values(reg) : cands
     n = isempty(cands) ? "no dataset" : "$(length(cands)) datasets"
     throw(ArgumentError("""
         $(reg.name): $n for $(sel), default selectors $(reg.defaults).

@@ -4,7 +4,7 @@ import Base: ∘
 using Base: @propagate_inbounds
 
 export Registry, Dataset, Archive, Product, Transformed, Event
-export AbstractCatalog, AbstractEvent
+export AbstractEvent
 export AbstractDataVariable
 export AbstractReferenceFrame, AbstractRepresentation
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys

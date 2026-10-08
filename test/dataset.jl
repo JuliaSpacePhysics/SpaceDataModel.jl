@@ -33,6 +33,11 @@
     @test [ds.name for ds in f.datasets] == ["hz_{rate}"]
     @test NamedTuple(selectors(only(f.datasets))).probe == "ts2"
     @test isempty(filter(reg; rate="1hz").datasets)
+
+    @test keys(reg) == ["hz_{rate}", "daily_{rate}", "open"]
+    @test reg["open"] === open
+    err = try reg["HZ"] catch e e end
+    @test err isa ArgumentError && occursin("hz_{rate}", err.msg)
 end
 
 @testitem "getdata and variable pins" begin

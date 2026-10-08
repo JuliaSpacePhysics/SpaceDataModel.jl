@@ -18,6 +18,7 @@ reg = Registry("EPD", [epd]; defaults = (; probe = "ela"))
 
 filter(reg; probe = "elb")    # discovery path: keeps matching rows
 ds = reg[probe = "elb"]       # select the only matching dataset, or an error listing the domains
+keys(reg); reg["epd"]         # dataset names; one by name
 getdata(ds, "2021-08-08", "2021-08-09")    # enumerate remote files, cache, open
 ```
 
@@ -32,6 +33,8 @@ A package adds a dataset type, or a `DataSource` for a standalone variable:
 struct MyDataset <: SpaceDataModel.AbstractDataset; id::String; end
 SpaceDataModel.getdata(ds::MyDataset, t0::DateTime, t1::DateTime; kw...) = ...    # all variables, indexable by name
 SpaceDataModel.getdata(p::Product{MyDataset}, t0::DateTime, t1::DateTime; kw...) = ...  # optional: fetch `p.variable` directly
+Base.keys(ds::MyDataset) = ...      # variable names
+SpaceDataModel.getmeta(ds::MyDataset) = ...  # dataset attributes
 ```
 
 `getdata` converts time strings (`"2020-001"`, `"2020-01-01 12:00"`) and `Date`s to `DateTime` before dispatching on a `DataSource`.

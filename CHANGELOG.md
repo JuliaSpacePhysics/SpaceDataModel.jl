@@ -10,6 +10,7 @@
 
 ### Changed
 
+- `AbstractCatalog` is removed.
 - `getdata` on a `DataSource` converts time strings and `Date`s to `DateTime` before dispatch, so methods may type `t0, t1` as `DateTime`.
 - `refresh=true` re-lists each directory once per call, not once per step.
 

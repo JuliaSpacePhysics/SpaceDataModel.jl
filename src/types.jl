@@ -31,10 +31,22 @@ end
 Registry(name, datasets; kw...) = Registry(; name, datasets, kw...)
 
 Base.getindex(reg::Registry; kw...) = select(reg, Selectors(kw))
+Base.keys(reg::Registry) = [name(ds) for ds in values(reg)]
+Base.values(reg::Registry) = values(reg.datasets)
 
-# https://spase-group.org/data/model/spase-2.7.0/spase-2_7_0_xsd.html#http___www.spase-group.org_data_schema_Spase_Catalog
-# Listing of events or observational notes.
-abstract type AbstractCatalog end
+function Base.getindex(reg::Registry, id::AbstractString)
+    for ds in values(reg)
+        name(ds) == id && return ds
+    end
+    _unknown_id(name(reg), keys(reg), id)
+end
+
+@noinline function _unknown_id(label, ids, id)
+    near = filter(k -> occursin(lowercase(id), lowercase(k)), ids)
+    hint = isempty(near) ? "$(length(ids)) ids, e.g. $(join(first(ids, 5), ", "))" : "did you mean $(join(first(near, 10), ", "))?"
+    throw(ArgumentError("$label: no id $(repr(id)); $hint"))
+end
+
 abstract type AbstractEvent end
 
 @kwdef struct Event{A,T,M} <: AbstractEvent
