@@ -32,6 +32,8 @@ A package adds a dataset type, or a `DataSource` for a standalone variable:
 struct MyDataset <: SpaceDataModel.AbstractDataset; id::String; end
 SpaceDataModel.getdata(ds::MyDataset, t0::DateTime, t1::DateTime; kw...) = ...    # all variables, indexable by name
 SpaceDataModel.getdata(p::Product{MyDataset}, t0::DateTime, t1::DateTime; kw...) = ...  # optional: fetch `p.variable` directly
+Base.keys(ds::MyDataset) = ...      # variable names, without fetching
+SpaceDataModel.getmeta(ds::MyDataset) = ...  # dataset attributes, without fetching
 ```
 
 `getdata` converts time strings (`"2020-001"`, `"2020-01-01 12:00"`) and `Date`s to `DateTime` before dispatching on a `DataSource`.
@@ -41,6 +43,21 @@ A range without data should return an empty variable (`Archive` throws instead: 
 Check a dataset against the contract in its tests with `using Test; SpaceDataModel.Testing.test_dataset(ds, var, t0, t1; empty)`.
 
 `Dataset` is the `AbstractDataset` for file archives: a name templated over selector domains, and a source such as `Archive`, see Quick Start.
+
+## Discovery
+
+A provider is an `AbstractRegistry`: its sources keyed by id. Discovery uses Base verbs only:
+
+```julia
+filter(contains(r"OMNI.*HRO"), keys(reg))   # ids; substring/regex search
+ds = reg["OMNI_HRO_1MIN"]                    # an unknown id errors with near matches
+keys(ds); getmeta(ds)                        # variables and attributes, without fetching
+getdata(ds["BZ_GSM"], t0, t1)
+filter(ds -> getmeta(ds, "observatory") == "ACE", reg)   # predicate over sources; a Registry
+```
+
+A package provider subtypes `AbstractRegistry` and defines `keys(reg)` and `reg[id]`; build sources lazily in `reg[id]`, since `values`, `length` and predicate `filter` call it per id.
+`Registry` is the in-memory one, keyed by dataset name and also selectable by selectors (Quick Start).
 
 ## Metadata Schemas
 

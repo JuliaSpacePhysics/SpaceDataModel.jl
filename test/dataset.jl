@@ -33,6 +33,22 @@
     @test [ds.name for ds in f.datasets] == ["hz_{rate}"]
     @test NamedTuple(selectors(only(f.datasets))).probe == "ts2"
     @test isempty(filter(reg; rate="1hz").datasets)
+
+    @test keys(reg) == ["hz_{rate}", "daily_{rate}", "open"]
+    @test reg["open"] === open
+    # A predicate filter keeps the defaults, so selection on the result still applies them.
+    @test filter(ds -> startswith(ds.name, "hz"), reg)[rate="64hz"] == reg[rate="64hz"]
+    err = try reg["HZ"] catch e e end
+    @test err isa ArgumentError && occursin("hz_{rate}", err.msg)
+end
+
+@testitem "AbstractRegistry defaults" begin
+    struct Lazy <: SpaceDataModel.AbstractRegistry end
+    Base.keys(::Lazy) = ["a", "bb"]
+    Base.getindex(::Lazy, id::String) = Product(Dataset("d", nothing), id)
+    sub = filter(p -> length(p.variable) > 1, Lazy())
+    @test sub isa Registry && keys(sub) == ["bb"]
+    @test sub["bb"].variable == "bb"
 end
 
 @testitem "getdata and variable pins" begin
