@@ -1,9 +1,16 @@
 """
-    AbstractDataset
+    DataSource
 
-Supertype for package dataset types; contract in the README (Data Sources).
+Supertype for anything [`getdata`](@ref) materializes over a time range; contract in the README (Data Sources).
 """
-abstract type AbstractDataset end
+abstract type DataSource end
+
+"""
+    AbstractDataset <: DataSource
+
+A `DataSource` whose data is indexable by variable name; `ds[var]` is a [`Product`](@ref).
+"""
+abstract type AbstractDataset <: DataSource end
 
 """
     Registry(name, datasets; defaults=(;), metadata=NoMetadata(), kw...)
