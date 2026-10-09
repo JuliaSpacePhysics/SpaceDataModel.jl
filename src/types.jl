@@ -8,7 +8,7 @@ abstract type DataSource end
 """
     AbstractDataset <: DataSource
 
-A `DataSource` whose data is indexable by variable name; `ds[var]` is a [`Product`](@ref).
+A `DataSource` whose data is indexable by variable name `ds[var]`.
 """
 abstract type AbstractDataset <: DataSource end
 

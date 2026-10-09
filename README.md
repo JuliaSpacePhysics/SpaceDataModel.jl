@@ -25,7 +25,7 @@ getdata(ds, "2021-08-08", "2021-08-09")    # enumerate remote files, cache, open
 ## Data Sources
 
 `getdata(x, t0, t1)` is the one fetch verb; `x` is a `SpaceDataModel.DataSource` or a function with `(t0, t1) -> data`.
-`AbstractDataset <: DataSource` adds indexable variables: `ds[var]` is a `Product`.
+`AbstractDataset <: DataSource` adds indexable variables: `ds[var] isa DataSource`.
 
 A package adds a dataset type, or a `DataSource` for a standalone variable:
 
