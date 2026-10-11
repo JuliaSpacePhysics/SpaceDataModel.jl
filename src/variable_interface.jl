@@ -1,9 +1,6 @@
 # Interface
 name(v) = @getproperty v (:name,) getmeta(v, "name", "")
 
-
-unwrap(x) = x
-
 # Dimension
 # https://rafaqz.github.io/DimensionalData.jl/stable/api/dimensions
 """
@@ -22,13 +19,8 @@ function dims end
 dims(x) = ntuple(i -> dims(x, i), ndims(x))
 dims(x, i) = axes(x, i)
 
-function dims(x, s::Union{String, Symbol})
-    for i in 1:ndims(x)
-        d = dims(x, i)
-        name(d) == s && return d
-    end
-    error("Dimension $s not found")
-end
+dims(x, s::Union{String, Symbol}) = dims(x, @something _dimnum(x, s) error("Dimension $s not found"))
+_dimnum(x, s) = findfirst(i -> name(dims(x, i)) == s, 1:ndims(x))
 
 """
     getmeta(x)

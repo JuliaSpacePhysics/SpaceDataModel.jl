@@ -90,7 +90,7 @@ end
     @test string(name(x)) == ""
     @test unwrap(Ti(view([1, 2, 3, 4, 5], 2:3))) == view(1:5, 2:3)
 
-    @testset "TimeSeriesAPI" begin
+    @testset "time dimension" begin
         using SpaceDataModel: tdimnum
         x = rand(X(3), Ti(5), Z(2))
         @test tdimnum(x) == 2
