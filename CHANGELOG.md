@@ -2,17 +2,32 @@
 
 ## [Unreleased]
 
+Breaking (0.5): SpaceDataModel depends on TimeseriesUtilities 0.3.
+
 ### Added
 
 - `SpaceDataModel.DataSource`: supertype of `AbstractDataset`, `Product`, `Transformed` and `Archive`; subtypes are callable (`x(t0, t1)`).
 - `SpaceDataModel.AbstractDataset`: supertype for package dataset types.
 - `SpaceDataModel.Testing.test_dataset` checks a dataset against the contract (README, Data Sources); loaded with `Test`.
+- Variables implement the TimeseriesUtilities container interface (`rebuild`, `rekey`, `axiskeys`, `dimnum` by dimension name), so its operations (`tclip`, `tinterp`, `tmean`, `mapsamples`, …) return variables that keep their times and metadata.
+- Indexing a variable with ranges or vectors (`v[2:3, :]`, `view`) keeps its dimensions and metadata; it returned a plain array. A time-varying dimension (a matrix along its own axis and time, like CDF `DEPEND_i`) is sliced along both; operations producing new times (`tinterp`, `tresample`, …) replace it with the plain axis.
+- `DataVariable(data, dims, tdim, metadata)` stores dimensions and a time dimension; it throws a `DimensionMismatch` when a dimension does not fit the data.
 
 ### Changed
 
+- **Breaking**: `tdimnum`, `times` and `unwrap` imported from TimeseriesUtilities. `SpaceDataModel.tmin`/`tmax` are removed; use `trange(v)`.
+- **Breaking**: `tdimnum` is no longer exported.
 - `AbstractCatalog` is removed.
 - `getdata` on a `DataSource` converts time strings and `Date`s to `DateTime` before dispatch, so methods may type `t0, t1` as `DateTime`.
 - `refresh=true` re-lists each directory once per call, not once per step.
+
+### Removed
+
+- **Breaking**: `times(t)` of a vector of times returning `t`.
+- **Breaking**: `SpaceDataModel.cadence` and `≃`; use TimeseriesUtilities' `cadence(t)`, which tolerates gaps and jitter and warns rather than throws on irregular sampling, and `samplingrate(t)` for `1 / cadence(Float64, t)`.
+- **Breaking**: `dim`, the pre-0.4 name of `dims`; `getdim` remains.
+- **Breaking**: The `SpaceDataModel.TimeSeriesAPI` module (its functions remain in `SpaceDataModel`).
+- **Breaking**: `TimeRanges`, `ContinuousTimeRanges` and `AbstractTimeRanges`; use TimeseriesUtilities' `IntervalRange`/`tsplit` (which also handles calendar periods and clips the last range to `stop`) and `ContinuousTimeRanges`.
 
 ### Fixed
 
@@ -93,7 +108,6 @@ Model-the-contract redesign. Breaking throughout.
 ### Removed
 
 - **Breaking**: remove function `abbr` (previously exported)
-
 
 [unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.3.0...v0.4.0

@@ -1,5 +1,6 @@
 module SpaceDataModel
 using ConstructionBase: setproperties
+import TimeseriesUtilities: axiskeys, dimnum, rebuild, rekey, tdimnum, times, unwrap
 import Base: ∘
 using Base: @propagate_inbounds
 
@@ -10,7 +11,7 @@ export AbstractReferenceFrame, AbstractRepresentation
 export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getdata, available
 export getmeta, setmeta!, setmeta, units
-export getdim, tdimnum
+export getdim
 
 # API
 
@@ -42,7 +43,7 @@ include("select.jl")
 include("dataset.jl")
 include("product.jl")
 include("variable_interface.jl")
-const dim = getdim = dims # `dim` is the pre-0.4 name.
+const getdim = dims
 include("variable.jl")
 include("mask.jl")
 include("coord.jl")
@@ -52,9 +53,7 @@ include("coordinates/representation.jl")
 include("schemas/schema.jl"); export get_schema, SchemaDict
 
 include("times.jl");        using .Times
-include("timeseries.jl");   using .TimeSeriesAPI
-using .TimeSeriesAPI: hastimedim
-include("timerange.jl");    export TimeRanges, ContinuousTimeRanges
+include("timeseries.jl")
 include("remote.jl");       export localize, resolve_url, remotefiles
 
 include("show.jl")

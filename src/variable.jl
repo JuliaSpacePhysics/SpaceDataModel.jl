@@ -66,15 +66,57 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractData
     return
 end
 
-# DataVariable (a example of AbstractDataVariable)
-struct DataVariable{T, N, A <: AbstractArray{T, N}, D} <: AbstractDataVariable{T, N}
+"""
+    DataVariable(data, dims, tdim, metadata)
+    DataVariable(data, metadata = Dict())
+
+In-memory variable: `data` with dimensions `dims` (one per axis), time dimension index `tdim` (or `nothing`)
+and `metadata`. Without `dims`, the dimensions are the axes of `data` and there is no time dimension.
+Each dimension is a vector along its axis or, when time-varying (e.g. energy bins), a matrix along its
+axis and the time axis in the variable's order (as CDF `DEPEND_i`); others throw a `DimensionMismatch`.
+"""
+struct DataVariable{T, N, A <: AbstractArray{T, N}, D <: Tuple, M} <: AbstractDataVariable{T, N}
     data::A
-    metadata::D
+    dims::D
+    tdim::Union{Int, Nothing}
+    metadata::M
+    function DataVariable(data::A, dims::D, tdim, metadata::M) where {T, N, A <: AbstractArray{T, N}, D <: Tuple, M}
+        _fits(data, dims, tdim) || throw(DimensionMismatch("dimensions $(map(summary, dims)) with time dimension $tdim do not fit data of size $(size(data))"))
+        return new{T, N, A, D, M}(data, dims, tdim, metadata)
+    end
 end
+
+DataVariable(data, metadata = Dict()) = DataVariable(data, axes(data), nothing, metadata)
 
 Base.IndexStyle(::Type{<:DataVariable{T, N, A}}) where {T, N, A} = IndexStyle(A)
 
-Base.similar(A::DataVariable, ::Type{T}, dims::Dims) where {T} = DataVariable(similar(A.data, T, dims), A.metadata)
+# Same-size results (e.g. broadcasting) keep the dimensions.
+Base.similar(A::DataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
+    DataVariable(similar(A.data, T, sz), A.dims, A.tdim, A.metadata) :
+    DataVariable(similar(A.data, T, sz), A.metadata)
+
+tdimnum(v::DataVariable) = v.tdim
+
+Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
+Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
+
+# Non-scalar indexing slices each dimension along the axes it spans, with `f` as the data.
+function _index(f, var, I)
+    data = f(parent(var), I...)
+    data isa AbstractArray && length(I) == ndims(var) || return data
+    t, ds = tdimnum(var), dims(var)
+    kept = _kept(I, Val(1))
+    return rebuild(var, data, kept, map(n -> _slicedim(f, var, ds[_valof(n)], _valof(n), t, I), kept))
+end
+
+# `Val` positions of the non-scalar indices, from their types so the result is inferable.
+_kept(::Tuple{}, ::Val) = ()
+_kept(I::Tuple, ::Val{k}) where {k} = (rest = _kept(Base.tail(I), Val(k + 1)); first(I) isa Integer ? rest : (Val(k), rest...))
+
+_slicedim(f, var, d::AbstractVector, k, t, I) = f(d, I[k])
+# Indexed by its own axis alone, a matrix would slice linearly; one that does not fit is left to `rebuild`.
+_slicedim(f, var, d::AbstractMatrix, k, t, I) = !_fitsdim(var, t, k, d) ? d : k < t ? f(d, I[k], I[t]) : f(d, I[t], I[k])
+_slicedim(f, var, d, k, t, I) = d
 
 # Broadcast
 # Reference: https://docs.julialang.org/en/v1/manual/interfaces/#man-interfaces-broadcasting

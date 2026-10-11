@@ -18,9 +18,7 @@ setmeta!
 
 ## Time series
 
-```@docs
-tdimnum
-```
+See [`AbstractDataVariable`](@ref) for what a variable type defines.
 
 ```@docs; canonical=false
 SpaceDataModel.mask_invalid
