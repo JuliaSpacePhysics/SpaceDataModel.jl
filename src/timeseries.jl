@@ -27,7 +27,7 @@ _valof(::Val{i}) where {i} = i
 
 # New keys along time cannot say what a time-varying dimension becomes (interpolated? averaged?),
 # so a dimension that no longer fits becomes the plain axis. Vectors follow their axis by construction.
-_rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, getmeta(v))
+_rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, _derivedmeta(v))
 _followdim(A, t, k, d::AbstractVector) = d
 _followdim(A, t, k, d) = _fitsdim(A, t, k, d) ? d : axes(A, k)
 
@@ -37,3 +37,9 @@ _fits(A, ds, t) = length(ds) == ndims(A) && (isnothing(t) || 1 <= t <= ndims(A))
 _fitsdim(A, t, k, d::AbstractVector) = length(d) == size(A, k)
 _fitsdim(A, t, k, d::AbstractMatrix) = !isnothing(t) && t != k && size(d) == (size(A, min(k, t)), size(A, max(k, t)))
 _fitsdim(A, t, k, d) = false
+
+# Derived variables read the metadata of `v` but write their own layer, so `r["units"] = ...` leaves `v` alone.
+_derivedmeta(v) = _overlay(getmeta(v))
+_overlay(m::OverlayDict) = OverlayDict(m.base, copy(m.overlay))
+_overlay(m::AbstractDict) = OverlayDict(m, Dict{keytype(m), valtype(m)}())
+_overlay(m) = m

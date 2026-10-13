@@ -95,7 +95,7 @@ tdimnum(v::DataVariable) = v.tdim
 # Same-size results (e.g. broadcasting, `copy`) keep the dimensions.
 Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
     rebuild(A, similar(parent(A), T, sz)) :
-    DataVariable(similar(parent(A), T, sz), getmeta(A))
+    DataVariable(similar(parent(A), T, sz), _derivedmeta(A))
 
 Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
 Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
