@@ -67,11 +67,12 @@ function Base.show(io::IO, m::MIME"text/plain", var::T) where {T <: AbstractData
 end
 
 """
-    DataVariable(data, dims, tdim, metadata)
-    DataVariable(data, metadata = Dict())
+    DataVariable(data, dims, tdim, metadata; name = metadata["name"])
+    DataVariable(data, metadata = Dict(); name = metadata["name"])
 
-In-memory variable: `data` with dimensions `dims` (one per axis), time dimension index `tdim` (or `nothing`)
-and `metadata`. Without `dims`, the dimensions are the axes of `data` and there is no time dimension.
+In-memory variable: `data` with dimensions `dims` (one per axis), time dimension index `tdim` (or `nothing`),
+`metadata` and `name` (`""` when `metadata` has none). Without `dims`, the dimensions are the axes of `data`
+and there is no time dimension.
 Each dimension is a vector along its axis or, when time-varying (e.g. energy bins), a matrix along its
 axis and the time axis in the variable's order (as CDF `DEPEND_i`); others throw a `DimensionMismatch`.
 """
@@ -79,14 +80,15 @@ struct DataVariable{T, N, A <: AbstractArray{T, N}, D <: Tuple, M} <: AbstractDa
     data::A
     dims::D
     tdim::Union{Int, Nothing}
+    name::String
     metadata::M
-    function DataVariable(data::A, dims::D, tdim, metadata::M) where {T, N, A <: AbstractArray{T, N}, D <: Tuple, M}
+    function DataVariable(data::A, dims::D, tdim, metadata::M; name = getmeta(metadata, "name", "")) where {T, N, A <: AbstractArray{T, N}, D <: Tuple, M}
         _fits(data, dims, tdim) || throw(DimensionMismatch("dimensions $(map(summary, dims)) with time dimension $tdim do not fit data of size $(size(data))"))
-        return new{T, N, A, D, M}(data, dims, tdim, metadata)
+        return new{T, N, A, D, M}(data, dims, tdim, string(name), metadata)
     end
 end
 
-DataVariable(data, metadata = Dict()) = DataVariable(data, axes(data), nothing, metadata)
+DataVariable(data, metadata = Dict(); name = getmeta(metadata, "name", "")) = DataVariable(data, axes(data), nothing, metadata; name)
 
 Base.IndexStyle(::Type{<:DataVariable{T, N, A}}) where {T, N, A} = IndexStyle(A)
 
@@ -95,7 +97,7 @@ tdimnum(v::DataVariable) = v.tdim
 # Same-size results (e.g. broadcasting, `copy`) keep the dimensions.
 Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
     rebuild(A, similar(parent(A), T, sz)) :
-    DataVariable(similar(parent(A), T, sz), _derivedmeta(A))
+    DataVariable(similar(parent(A), T, sz), _derivedmeta(A); name = name(A))
 
 Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
 Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)

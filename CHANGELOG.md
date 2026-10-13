@@ -11,7 +11,7 @@ Breaking (0.5): SpaceDataModel depends on TimeseriesUtilities 0.3.
 - `SpaceDataModel.Testing.test_dataset` checks a dataset against the contract (README, Data Sources); loaded with `Test`.
 - Variables implement the TimeseriesUtilities container interface (`rebuild`, `rekey`, `axiskeys`, `dimnum` by dimension name), so its operations (`tclip`, `tinterp`, `tmean`, `mapsamples`, …) return variables that keep their times and metadata.
 - Indexing a variable with ranges or vectors (`v[2:3, :]`, `view`) keeps its dimensions and metadata; it returned a plain array. A time-varying dimension (a matrix along its own axis and time, like CDF `DEPEND_i`) is sliced along both; operations producing new times (`tinterp`, `tresample`, …) replace it with the plain axis.
-- `DataVariable(data, dims, tdim, metadata)` stores dimensions and a time dimension; it throws a `DimensionMismatch` when a dimension does not fit the data.
+- `DataVariable(data, dims, tdim, metadata; name)` stores dimensions, a time dimension and a name (by default the metadata's `"name"`, which no longer renames it afterwards); it throws a `DimensionMismatch` when a dimension does not fit the data.
 
 ### Changed
 
