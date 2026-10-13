@@ -2,7 +2,9 @@
 
 ## [Unreleased]
 
-Breaking (0.5): SpaceDataModel depends on TimeseriesUtilities 0.3.
+## [0.5.0] - 2026-10-12
+
+SpaceDataModel depends on TimeseriesUtilities 0.3.
 
 ### Added
 
@@ -109,7 +111,9 @@ Model-the-contract redesign. Breaking throughout.
 
 - **Breaking**: remove function `abbr` (previously exported)
 
-[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.2...v0.5.0
+[0.4.2]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.0...v0.4.2
 [0.4.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/releases/tag/v0.2.0
