@@ -52,6 +52,9 @@ end
     @test times(view(v, [1, 3], 2)) == ts[[1, 3]]
     @test !hastimedim(v[2, :])
     @test times(v .+ 1) == ts && units(v .+ 1) == "nT"
+    r2 = r[1:1, :]
+    r2["units"] = "pT"
+    @test units(r) == units(v) == "nT"
 end
 
 @testitem "dims ignores a non-AbstractDataVariable dims field" begin
