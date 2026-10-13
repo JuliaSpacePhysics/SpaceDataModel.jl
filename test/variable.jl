@@ -26,6 +26,7 @@ end
     end
     SpaceDataModel.tdimnum(::Source) = 1
     SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : axes(v, i)
+    SpaceDataModel.name(::Source) = "B"
 
     ts = DateTime(2020) .+ Day.(0:2)
     A = [1.0 2.0; 3.0 4.0; 5.0 6.0]
@@ -48,7 +49,7 @@ end
 
     # indexing slices the dimensions
     r = v[2:3, :]
-    @test times(r) == ts[2:3] && units(r) == "nT"
+    @test times(r) == ts[2:3] && units(r) == "nT" && name(r) == "B"
     @test times(view(v, [1, 3], 2)) == ts[[1, 3]]
     @test !hastimedim(v[2, :])
     @test times(v .+ 1) == ts && units(v .+ 1) == "nT"

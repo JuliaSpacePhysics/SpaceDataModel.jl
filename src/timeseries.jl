@@ -27,7 +27,7 @@ _valof(::Val{i}) where {i} = i
 
 # New keys along time cannot say what a time-varying dimension becomes (interpolated? averaged?),
 # so a dimension that no longer fits becomes the plain axis. Vectors follow their axis by construction.
-_rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, _derivedmeta(v))
+_rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, _derivedmeta(v); name = name(v))
 _followdim(A, t, k, d::AbstractVector) = d
 _followdim(A, t, k, d) = _fitsdim(A, t, k, d) ? d : axes(A, k)
 
