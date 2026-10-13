@@ -90,12 +90,12 @@ DataVariable(data, metadata = Dict()) = DataVariable(data, axes(data), nothing, 
 
 Base.IndexStyle(::Type{<:DataVariable{T, N, A}}) where {T, N, A} = IndexStyle(A)
 
-# Same-size results (e.g. broadcasting) keep the dimensions.
-Base.similar(A::DataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
-    DataVariable(similar(A.data, T, sz), A.dims, A.tdim, A.metadata) :
-    DataVariable(similar(A.data, T, sz), A.metadata)
-
 tdimnum(v::DataVariable) = v.tdim
+
+# Same-size results (e.g. broadcasting, `copy`) keep the dimensions.
+Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
+    rebuild(A, similar(parent(A), T, sz)) :
+    DataVariable(similar(parent(A), T, sz), getmeta(A))
 
 Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
 Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
