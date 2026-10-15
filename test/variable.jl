@@ -58,6 +58,16 @@ end
     @test units(r) == units(v) == "nT"
 end
 
+@testitem "indexing with CartesianIndex or trailing integers" begin
+    using SpaceDataModel: DataVariable, times
+    using Dates
+    ts = DateTime(2020) .+ Day.(0:2)
+    v = DataVariable([1.0 2.0 3.0; 4.0 5.0 6.0], (1:2, ts), 2, Dict())
+    @test times(v[CartesianIndex(2), 2:3]) == times(v[2, 2:3, 1]) == ts[2:3]
+    @test v[2:3] isa Vector  # linear indexing
+    @test v[1, :, :] isa Matrix
+end
+
 @testitem "dims ignores a non-AbstractDataVariable dims field" begin
     # `Base.ReshapedArray` stores its size in a `dims` field
     @test SpaceDataModel.dims(reshape(view(collect(1:6), :), 2, 3), 1) == 1:2
