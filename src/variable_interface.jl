@@ -22,6 +22,13 @@ dims(x, i) = axes(x, i)
 dims(x, s::Union{String, Symbol}) = dims(x, @something _dimnum(x, s) error("Dimension $s not found"))
 _dimnum(x, s) = findfirst(i -> name(dims(x, i)) == s, 1:ndims(x))
 
+# DEPEND_1 is the first non-time dimension, wherever time is stored; `nothing` for a time series vector.
+depend_1_dimnum(x) = ndims(x) - hastimedim(x) < 1 ? nothing : tdimnum(x) == 1 ? 2 : 1
+function depend_1(x)
+    d = depend_1_dimnum(x)
+    return isnothing(d) ? nothing : dims(x, d)
+end
+
 """
     getmeta(x)
 
