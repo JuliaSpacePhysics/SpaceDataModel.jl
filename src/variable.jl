@@ -94,10 +94,11 @@ Base.IndexStyle(::Type{<:DataVariable{T, N, A}}) where {T, N, A} = IndexStyle(A)
 
 tdimnum(v::DataVariable) = v.tdim
 
-# Same-size results (e.g. broadcasting, `copy`) keep the dimensions.
-Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = sz == size(A) ?
-    rebuild(A, similar(parent(A), T, sz)) :
-    DataVariable(similar(parent(A), T, sz), _derivedmeta(A); name = name(A))
+Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = _wrap(A, similar(parent(A), T, sz))
+
+# `data` derived from `A`: same-size data (e.g. broadcasting, `copy`) keeps the dimensions.
+_wrap(A, data::AbstractArray) = size(data) == size(A) ? rebuild(A, data) : DataVariable(data, _derivedmeta(A); name = name(A))
+_wrap(A, x) = x
 
 Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
 Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
@@ -129,7 +130,12 @@ _slicedim(f, var, d, k, t, I) = d
 using Base.Broadcast: ArrayStyle, Broadcasted
 Base.BroadcastStyle(::Type{<:AbstractDataVariable}) = ArrayStyle{AbstractDataVariable}()
 
-Base.similar(bc::Broadcasted{ArrayStyle{AbstractDataVariable}}, ::Type{T}) where {T} = similar(find_datavariable(bc), T, axes(bc))
+# Broadcasts over the parents, so the result is what they give (e.g. a scalar for 0-dim, a range for
+# ranges), then wraps it; a loop into a `similar` destination would run over a union of types.
+Base.copy(bc::Broadcasted{ArrayStyle{AbstractDataVariable}}) = _wrap(find_datavariable(bc), Broadcast.materialize(_parents(bc)))
+_parents(bc::Broadcasted) = Broadcast.broadcasted(bc.f, map(_parents, bc.args)...)
+_parents(x::AbstractDataVariable) = parent(x)
+_parents(x) = x
 
 find_datavariable(x::Broadcasted) = find_datavariable(x.args)
 function find_datavariable(x::Tuple)

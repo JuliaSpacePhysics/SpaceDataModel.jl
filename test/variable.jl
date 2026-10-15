@@ -6,6 +6,8 @@
     @test result1 isa DataVariable
     @test parent(result1) == [2.0, 3.0, 4.0]
     @test size(var .+ ones(3, 2)) == (3, 2)
+    # Results are those of the parent array
+    @test DataVariable(fill(1.0), Dict()) .+ 1 === 2.0
 end
 
 @testitem "time dimension" begin
@@ -56,6 +58,15 @@ end
     r2 = r[1:1, :]
     r2["units"] = "pT"
     @test units(r) == units(v) == "nT"
+end
+
+@testitem "same-size similar infers a small union of concrete types" begin
+    using SpaceDataModel: DataVariable
+    using Dates
+    v = DataVariable(rand(3, 100), (rand(3, 100), DateTime(2020) .+ Day.(0:99)), 2, Dict())  # time-varying dimension
+    # `map` splits such a union; an abstract type makes it dispatch per element.
+    T = only(Base.return_types(similar, (typeof(v), Type{Float32}, Dims{2})))
+    @test all(isconcretetype, Base.uniontypes(T))
 end
 
 @testitem "indexing with CartesianIndex or trailing integers" begin
