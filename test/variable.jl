@@ -60,13 +60,15 @@ end
     @test units(r) == units(v) == "nT"
 end
 
-@testitem "same-size similar infers a small union of concrete types" begin
+@testitem "same-size similar and slices infer a small union of concrete types" begin
     using SpaceDataModel: DataVariable
     using Dates
     v = DataVariable(rand(3, 100), (rand(3, 100), DateTime(2020) .+ Day.(0:99)), 2, Dict())  # time-varying dimension
-    # `map` splits such a union; an abstract type makes it dispatch per element.
-    T = only(Base.return_types(similar, (typeof(v), Type{Float32}, Dims{2})))
-    @test all(isconcretetype, Base.uniontypes(T))
+    # `map` and loops over `eachcol` split such a union; an abstract type makes them dispatch per element.
+    for (f, args) in ((similar, (Type{Float32}, Dims{2})), (view, (Colon, Int)), (view, (Colon, UnitRange{Int})))
+        T = only(Base.return_types(f, (typeof(v), args...)))
+        @test all(isconcretetype, Base.uniontypes(T))
+    end
 end
 
 @testitem "indexing with CartesianIndex or trailing integers" begin

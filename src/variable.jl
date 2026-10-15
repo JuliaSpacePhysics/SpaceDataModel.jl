@@ -110,18 +110,29 @@ function _index(f, var, I)
     J, N = to_indices(var, I), ndims(var)
     # Fewer indices than dimensions index linearly
     length(J) >= N && all(j -> j isa Integer, J[(N + 1):end]) || return data
-    t, ds = tdimnum(var), _checkeddims(var)
-    kept = _kept(J, Val(1))
-    return rebuild(var, data, kept, map(n -> _slicedim(f, ds[_valof(n)], _valof(n), t, J), kept))
+    ds, kept = _checkeddims(var), _kept(J, Val(1))
+    # Slices of fitting dimensions fit, so skip `rebuild`'s fallback to axes (a union per dimension).
+    # A time-varying dimension's slice type depends on the time index's type, hence a static `tdim`.
+    return _static(tdimnum(var), Val(N)) do t
+        DataVariable(data, map(n -> _slicedim(f, ds[_valof(n)], n, t, J), kept), _newtdim(kept, t), _derivedmeta(var); name = name(var))
+    end
 end
+
+# `g(Val(t))` for `t` in `1:n`, else `g(nothing)`: one branch per value.
+_static(g, ::Nothing, ::Val) = g(nothing)
+_static(g, t::Integer, ::Val{0}) = throw(ArgumentError("time dimension $t out of range"))
+_static(g, t::Integer, ::Val{n}) where {n} = t == n ? g(Val(n)) : _static(g, t, Val(n - 1))
+
+_newtdim(kept, ::Nothing) = nothing
+_newtdim(kept, t::Val) = findfirst(==(t), kept)
 
 # `Val` positions of the non-scalar indices, from their types so the result is inferable.
 _kept(::Tuple{}, ::Val) = ()
 _kept(I::Tuple, ::Val{k}) where {k} = (rest = _kept(Base.tail(I), Val(k + 1)); first(I) isa Integer ? rest : (Val(k), rest...))
 
-_slicedim(f, d::AbstractVector, k, t, I) = f(d, I[k])
+_slicedim(f, d::AbstractVector, ::Val{k}, t, I) where {k} = f(d, I[k])
 # Indexed by its own axis alone, a matrix would slice linearly.
-_slicedim(f, d::AbstractMatrix, k, t, I) = k < t ? f(d, I[k], I[t]) : f(d, I[t], I[k])
+_slicedim(f, d::AbstractMatrix, ::Val{k}, ::Val{t}, I) where {k, t} = k < t ? f(d, I[k], I[t]) : f(d, I[t], I[k])
 
 # Broadcast
 # Reference: https://docs.julialang.org/en/v1/manual/interfaces/#man-interfaces-broadcasting
