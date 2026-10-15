@@ -37,3 +37,12 @@
     r = tclip(DataVariable(A, (t, energy), 1, meta), 15.0, 25.0; dim = "energy")
     @test isequal(unwrap(r), A[:, 2:2]) && times(r) == t
 end
+
+@testitem "depend_1 of a vector without a time dimension" begin
+    using SpaceDataModel: DataVariable, depend_1, mask_invalid
+    using Dates
+    @test depend_1(DataVariable([1.0, 2.0, 3.0], (["x", "y", "z"],), nothing, Dict())) == ["x", "y", "z"]
+    ts = DateTime(2020) .+ Day.(0:1)
+    v = DataVariable([1.0 2.0 3.0; 4.0 5.0 6.0], (ts, 1:3), 1, Dict("CATDESC" => "B", "VALIDMAX" => [0.0, 5.0, 5.0]))
+    @test isequal(mask_invalid(v[1, :]), [NaN, 2.0, 3.0])  # a single record
+end

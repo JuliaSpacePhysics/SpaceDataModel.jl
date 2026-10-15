@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `depend_1` of a vector without a time dimension is that dimension (it was `nothing`).
+
 ## [0.5.0] - 2026-10-12
 
 SpaceDataModel depends on TimeseriesUtilities 0.3.
