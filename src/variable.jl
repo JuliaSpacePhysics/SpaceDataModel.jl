@@ -105,10 +105,13 @@ Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
 # Non-scalar indexing slices each dimension along the axes it spans, with `f` as the data.
 function _index(f, var, I)
     data = f(parent(var), I...)
-    data isa AbstractArray && length(I) == ndims(var) || return data
+    data isa AbstractArray || return data
+    J, N = to_indices(var, I), ndims(var)
+    # Fewer indices than dimensions index linearly
+    length(J) >= N && all(j -> j isa Integer, J[(N + 1):end]) || return data
     t, ds = tdimnum(var), dims(var)
-    kept = _kept(I, Val(1))
-    return rebuild(var, data, kept, map(n -> _slicedim(f, var, ds[_valof(n)], _valof(n), t, I), kept))
+    kept = _kept(J, Val(1))
+    return rebuild(var, data, kept, map(n -> _slicedim(f, var, ds[_valof(n)], _valof(n), t, J), kept))
 end
 
 # `Val` positions of the non-scalar indices, from their types so the result is inferable.
