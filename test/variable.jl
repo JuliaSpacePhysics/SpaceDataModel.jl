@@ -58,6 +58,8 @@ end
     r2 = r[1:1, :]
     r2["units"] = "pT"
     @test units(r) == units(v) == "nT"
+    view(r, 1:1, :)["units"] = "pT"
+    @test units(r) == "pT" && units(v) == "nT"
 end
 
 @testitem "same-size similar and slices infer a small union of concrete types" begin

@@ -114,9 +114,13 @@ function _index(f, var, I)
     # Slices of fitting dimensions fit, so skip `rebuild`'s fallback to axes (a union per dimension).
     # A time-varying dimension's slice type depends on the time index's type, hence a static `tdim`.
     return _static(tdimnum(var), Val(N)) do t
-        DataVariable(data, map(n -> _slicedim(f, ds[_valof(n)], n, t, J), kept), _newtdim(kept, t), _derivedmeta(var); name = name(var))
+        DataVariable(data, map(n -> _slicedim(f, ds[_valof(n)], n, t, J), kept), _newtdim(kept, t), _indexmeta(f, var); name = name(var))
     end
 end
+
+# A view is the variable itself, so writes to its metadata reach `var`.
+_indexmeta(::typeof(view), var) = getmeta(var)
+_indexmeta(f, var) = _derivedmeta(var)
 
 # `g(Val(t))` for `t` in `1:n`, else `g(nothing)`: one branch per value.
 _static(g, ::Nothing, ::Val) = g(nothing)

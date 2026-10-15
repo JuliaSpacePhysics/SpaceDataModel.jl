@@ -9,6 +9,7 @@
 ### Changed
 
 - `:labels` come from dimensions in every schema, so they follow slicing.
+- A `view` of a variable shares its metadata, so writes through it reach the variable.
 
 ## [0.5.0] - 2026-10-12
 
