@@ -42,6 +42,27 @@ end
     @test get(sl, :title, "default") == "default"
 end
 
+@testitem "labels follow the DEPEND_1 axis" begin
+    using SpaceDataModel: DataVariable, ISTPSchema, get_schema
+    using Dates
+    ts = DateTime(2020) .+ Day.(0:1)
+    meta = Dict("CATDESC" => "flux", "LABL_PTR_1" => ["lo", "mid", "hi"])
+    labels(x) = ISTPSchema()(x, :labels)
+    ch = DataVariable(["x", "y", "z"], (["E1", "E2", "E3"],), nothing, Dict())
+    v = DataVariable(rand(3, 2), (ch, ts), 2, meta)
+    @test labels(v[2:3, :]) == ["E2", "E3"]  # a coordinate's own labels, over its string values
+    @test isnothing(labels(v[2, :]))         # the attribute lists 3 channels, not 1
+    @test isnothing(labels(DataVariable(rand(2), (ts,), 1, Dict("CATDESC" => "B", "LABL_PTR_1" => "label_b"))))
+    @test isnothing(labels(Dict("CATDESC" => "B", "LABL_PTR_1" => "label_b")))
+    @test labels(DataVariable(rand(3, 2), (["x", "y", "z"], ts), 2, meta)[[1, 3], :]) == ["x", "z"]
+    @test labels(DataVariable(rand(3, 2), (1:3, ts), 2, meta)) == ["lo", "mid", "hi"]
+    # a time-varying DEPEND_1 is laid out like the variable, here time first
+    c = DataVariable(rand(2, 3), (ts, ["E1", "E2", "E3"]), 1, Dict())
+    @test labels(DataVariable(rand(2, 3), (ts, c), 1, meta)[:, 2:3]) == ["E2", "E3"]
+    plain = DataVariable(rand(3, 2), (ch, ts), 2, Dict())
+    @test get_schema(plain)(plain[[1, 3], :], :labels) == ["E1", "E3"]  # any schema
+end
+
 @testitem "SchemaDict" begin
     using SpaceDataModel: SchemaDict, ISTPSchema, DefaultSchema, get_schema
 

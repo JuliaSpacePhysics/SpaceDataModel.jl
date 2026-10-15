@@ -35,6 +35,9 @@
 
     using SpaceDataModel: depend_1
     @test depend_1(rand(X(3), Ti(5), Y(2))) == X(1:3)
+
+    B = DimArray(rand(3, 2), (X(["Bx", "By", "Bz"]), Ti(1:2)); metadata = Dict("CATDESC" => "B"))
+    @test ISTPSchema()(B[X = 2:3], :labels) == ["By", "Bz"]
 end
 
 @testitem "DimensionalData mask_invalid" begin
