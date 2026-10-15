@@ -29,6 +29,16 @@ function depend_1(x)
     return isnothing(d) ? nothing : dims(x, d)
 end
 
+# Labels name the DEPEND_1 entries. Dimensions carry them, so slicing keeps them aligned: the strings
+# DEPEND_1 of DEPEND_1 (labels of a coordinate with values of its own), else a DEPEND_1 of strings.
+function dimlabels(x)
+    x isa AbstractArray || return nothing
+    c = depend_1(x)
+    l = c isa AbstractArray ? _strings(depend_1(c)) : nothing
+    return @something l _strings(c) Some(nothing)
+end
+_strings(c) = c isa AbstractVector{<:AbstractString} ? c : nothing
+
 """
     getmeta(x)
 

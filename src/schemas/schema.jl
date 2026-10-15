@@ -74,6 +74,7 @@ rules(::DefaultSchema) = _DEFAULT_MAPPING
 const _DEFAULT_MAPPING = (
     name = "name" => SpaceDataModel.name,
     unit = "units",
+    labels = dimlabels,
 )
 
 include("istp.jl")
