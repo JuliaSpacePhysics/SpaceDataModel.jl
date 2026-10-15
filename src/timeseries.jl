@@ -10,7 +10,7 @@ dimnum(v::AbstractDataVariable, s::Union{String, Symbol}) =
 
 # Most variable types wrap a specific source, so a rebuilt variable is a `DataVariable` with the
 # metadata of `v`; types that can hold new data may add `rebuild` methods returning their own type.
-rebuild(v::AbstractDataVariable, data) = _rebuild(v, data, dims(v), tdimnum(v))
+rebuild(v::AbstractDataVariable, data) = DataVariable(data, _fitteddims(v), tdimnum(v), _derivedmeta(v); name = name(v))
 rebuild(v::AbstractDataVariable, data, d::Integer, keys) =
     _rebuild(v, data, Base.setindex(dims(v), keys, d), tdimnum(v))
 # Kept axes whose keys are unchanged keep their dimension objects (names, units).
@@ -30,6 +30,10 @@ _valof(::Val{i}) where {i} = i
 _rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, _derivedmeta(v); name = name(v))
 _followdim(A, t, k, d::AbstractVector) = d
 _followdim(A, t, k, d) = _fitsdim(A, t, k, d) ? d : axes(A, k)
+
+# Dimensions of `v` that fit it.
+_fitteddims(v) = map((k, d) -> _followdim(v, tdimnum(v), k, d), ntuple(identity, ndims(v)), dims(v))
+_fitteddims(v::DataVariable) = dims(v)
 
 _fits(A, ds, t) = length(ds) == ndims(A) && (isnothing(t) || 1 <= t <= ndims(A)) && all(map((k, d) -> _fitsdim(A, t, k, d), ntuple(identity, length(ds)), ds))
 
