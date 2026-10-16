@@ -10,7 +10,7 @@ dimnum(v::AbstractDataVariable, s::Union{String, Symbol}) =
 
 # Most variable types wrap a specific source, so a rebuilt variable is a `DataVariable` with the
 # metadata of `v`; types that can hold new data may add `rebuild` methods returning their own type.
-rebuild(v::AbstractDataVariable, data) = DataVariable(data, _fitteddims(v), tdimnum(v), _derivedmeta(v); name = name(v))
+rebuild(v::AbstractDataVariable, data) = DataVariable(data, _checkeddims(v), tdimnum(v), _derivedmeta(v); name = name(v))
 rebuild(v::AbstractDataVariable, data, d::Integer, keys) =
     _rebuild(v, data, Base.setindex(dims(v), keys, d), tdimnum(v))
 # Kept axes whose keys are unchanged keep their dimension objects (names, units).
@@ -31,9 +31,12 @@ _rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, 
 _followdim(A, t, k, d::AbstractVector) = d
 _followdim(A, t, k, d) = _fitsdim(A, t, k, d) ? d : axes(A, k)
 
-# Dimensions of `v` that fit it.
-_fitteddims(v) = map((k, d) -> _followdim(v, tdimnum(v), k, d), ntuple(identity, ndims(v)), dims(v))
-_fitteddims(v::DataVariable) = dims(v)
+# A `DataVariable` checks its own dimensions on construction, so they infer.
+_checkeddims(v) = _checkfits(v, dims(v), tdimnum(v))
+_checkeddims(v::DataVariable) = dims(v)
+
+_checkfits(A, ds, t) = _fits(A, ds, t) ? ds :
+    throw(DimensionMismatch("dimensions $(map(summary, ds)) with time dimension $t do not fit data of size $(size(A))"))
 
 _fits(A, ds, t) = length(ds) == ndims(A) && (isnothing(t) || 1 <= t <= ndims(A)) && all(map((k, d) -> _fitsdim(A, t, k, d), ntuple(identity, length(ds)), ds))
 
