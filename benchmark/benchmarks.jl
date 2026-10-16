@@ -13,7 +13,7 @@ end
 
 # A time-varying (matrix) dimension is what can make results type-unstable.
 SUITE["DataVariable"] = let g = BenchmarkGroup(), A = rand(Float32, 3, 10^5)
-    v = DataVariable(A, (rand(3, 10^5), collect(1.0:10^5)), 2, Dict())
+    v = DataVariable(A; time = 2 => collect(1.0:(10^5)), dims = (1 => rand(3, 10^5),))
     g["broadcast"] = @benchmarkable $v .* 2
     g["broadcast parent"] = @benchmarkable $A .* 2
     g["map"] = @benchmarkable map(abs, $v)

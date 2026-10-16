@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking**: `DataVariable(data; time = d => t, dims = (i => c, …), coords, metadata, name)` replaces `DataVariable(data, dims, tdim, metadata)` and `DataVariable(data, metadata)`.
+- **Breaking**: `DataVariable{T, N, D, A, Tm, M}`: the time dimension `D` and the times' type are type parameters, other coordinates are stored untyped, so variables share a few types whatever their coordinates.
+- Dropping or resampling the time axis (`tmean`, `tinterp`) keeps a time-varying dimension constant over time as a vector, instead of the plain axis.
+
 ## [0.5.1] - 2026-10-15
 
 ### Fixed

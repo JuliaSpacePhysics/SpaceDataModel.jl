@@ -48,18 +48,18 @@ end
     ts = DateTime(2020) .+ Day.(0:1)
     meta = Dict("CATDESC" => "flux", "LABL_PTR_1" => ["lo", "mid", "hi"])
     labels(x) = ISTPSchema()(x, :labels)
-    ch = DataVariable(["x", "y", "z"], (["E1", "E2", "E3"],), nothing, Dict())
-    v = DataVariable(rand(3, 2), (ch, ts), 2, meta)
-    @test labels(v[2:3, :]) == ["E2", "E3"]  # a coordinate's own labels, over its string values
+    ch = 1 => DataVariable(["E1", "E2", "E3"]; name = "ch")
+    v = DataVariable(rand(3, 2); time = 2 => ts, dims = (1 => [1.0, 2.0, 3.0],), coords = (ch,), metadata = Dict("CATDESC" => "flux", "LABL_PTR_1" => "ch"))
+    @test labels(v[2:3, :]) == ["E2", "E3"]  # the coordinate `LABL_PTR_1` names
+    @test isnothing(labels(DataVariable(rand(3, 2); time = 2 => ts, dims = (1 => [1.0, 2.0, 3.0],), coords = (ch,))))  # strings alone are not labels
     @test isnothing(labels(v[2, :]))         # the attribute lists 3 channels, not 1
-    @test isnothing(labels(DataVariable(rand(2), (ts,), 1, Dict("CATDESC" => "B", "LABL_PTR_1" => "label_b"))))
+    @test isnothing(labels(DataVariable(rand(2); time = ts, metadata = Dict("CATDESC" => "B", "LABL_PTR_1" => "label_b"))))
     @test isnothing(labels(Dict("CATDESC" => "B", "LABL_PTR_1" => "label_b")))
-    @test labels(DataVariable(rand(3, 2), (["x", "y", "z"], ts), 2, meta)[[1, 3], :]) == ["x", "z"]
-    @test labels(DataVariable(rand(3, 2), (1:3, ts), 2, meta)) == ["lo", "mid", "hi"]
+    @test labels(DataVariable(rand(3, 2); time = 2 => ts, dims = (1 => ["x", "y", "z"],), metadata = meta)[[3, 2, 1], :]) == ["z", "y", "x"]
+    @test labels(DataVariable(rand(3, 2); time = 2 => ts, metadata = meta)) == ["lo", "mid", "hi"]
     # a time-varying DEPEND_1 is laid out like the variable, here time first
-    c = DataVariable(rand(2, 3), (ts, ["E1", "E2", "E3"]), 1, Dict())
-    @test labels(DataVariable(rand(2, 3), (ts, c), 1, meta)[:, 2:3]) == ["E2", "E3"]
-    plain = DataVariable(rand(3, 2), (ch, ts), 2, Dict())
+    @test labels(DataVariable(rand(2, 3); time = 1 => ts, dims = (2 => rand(2, 3),), coords = (2 => DataVariable(["E1", "E2", "E3"]; name = "ch"),), metadata = Dict("LABL_PTR_1" => "ch"))[:, 2:3]) == ["E2", "E3"]
+    plain = DataVariable(rand(3, 2); time = 2 => ts, dims = (1 => ["E1", "E2", "E3"],))
     @test get_schema(plain)(plain[[1, 3], :], :labels) == ["E1", "E3"]  # any schema
 end
 

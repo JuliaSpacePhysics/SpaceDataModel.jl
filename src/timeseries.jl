@@ -4,46 +4,71 @@ hastimedim(x) = !isnothing(tdimnum(x))
 timedim(x) = dims(x, @something tdimnum(x) throw(ArgumentError("$(typeof(x)) has no time dimension")))
 
 unwrap(v::AbstractDataVariable) = parent(v)
-axiskeys(v::AbstractDataVariable, d::Integer) = unwrap(dims(v, d))
+@inline axiskeys(v::AbstractDataVariable, d::Integer) = unwrap(dims(v, d))
 dimnum(v::AbstractDataVariable, s::Union{String, Symbol}) =
     @something _dimnum(v, s) throw(ArgumentError("dimension $s not found"))
 
-# Most variable types wrap a specific source, so a rebuilt variable is a `DataVariable` with the
+# Other variable types wrap a specific source, so a rebuilt variable is a `DataVariable` with the
 # metadata of `v`; types that can hold new data may add `rebuild` methods returning their own type.
-rebuild(v::AbstractDataVariable, data) = DataVariable(data, _checkeddims(v), tdimnum(v), _derivedmeta(v); name = name(v))
-rebuild(v::AbstractDataVariable, data, d::Integer, keys) =
-    _rebuild(v, data, Base.setindex(dims(v), keys, d), tdimnum(v))
-# Kept axes whose keys are unchanged keep their dimension objects (names, units).
-function rebuild(v::AbstractDataVariable, data, newdims::Tuple, keys::Tuple)
-    ds = map((n, k) -> n isa Val ? _keepdim(dims(v, _valof(n)), k) : k, newdims, keys)
-    t = tdimnum(v)
-    return _rebuild(v, data, ds, isnothing(t) ? nothing : findfirst(map(n -> n isa Val && _valof(n) == t, newdims)))
+rebuild(v::AbstractDataVariable, data) = rebuild(DataVariable(v), data)
+rebuild(v::AbstractDataVariable, data, newdims::Tuple) = rebuild(DataVariable(v), data, newdims)
+rekey(v::AbstractDataVariable, d::Integer, keys) = rekey(DataVariable(v), d, keys)
+
+rebuild(v::DataVariable{T, N, D}, data) where {T, N, D} = DataVariable{D}(data, v.time, v.dims, v.coords, name(v), _derivedmeta(v))
+
+# Same samples along `d`, relabelled: other coordinates stay. Inlined so a constant `d` picks the branch,
+# whose times differ in type.
+@inline rekey(v::DataVariable{T, N, D}, d::Integer, keys) where {T, N, D} = !isnothing(D) && d == D ?
+    DataVariable{D}(parent(v), keys, v.dims, v.coords, name(v), _derivedmeta(v)) : _rekey(v, d, keys)
+function _rekey(v::DataVariable{T, N, D}, d, keys) where {T, N, D}
+    ds = copy(v.dims)
+    ds[d] = _dimcoord(parent(v), keys, d, D)
+    return DataVariable{D}(parent(v), v.time, ds, v.coords, name(v), _derivedmeta(v))
 end
-_keepdim(d, k) = k === unwrap(d) ? d : k
-_keepdim(::T, k::T) where {T} = k # same type: `k` is `d` itself or new keys
-rekey(v::AbstractDataVariable, d, keys) = rebuild(v, parent(v), d, keys)
+
+# A kept axis `Val(i)` keeps its coordinates. A coordinate along an axis that is dropped or takes new samples
+# collapses when constant along it (e.g. energies after averaging over time), else is dropped.
+function rebuild(v::DataVariable{T, N, D}, data, newdims::Tuple) where {T, N, D}
+    newpos = zeros(Int, N)
+    for (j, n) in enumerate(newdims)
+        n isa Val && (newpos[_valof(n)] = j)
+    end
+    g = c -> _movecoord(c, newpos)
+    t = _newtdim(newdims, Val(D))
+    ds = Union{Nothing, Coord}[
+        j === t ? nothing : n isa Val ? g(v.dims[_valof(n)]) : _dimcoord(data, _named(first(n), last(n)), j, t)
+            for (j, n) in enumerate(newdims)
+    ]
+    time = isnothing(t) ? nothing : _keysof(v, newdims[t])
+    return DataVariable{t}(data, time, ds, _movedcoords(g, v, i -> newpos[i] == 0), name(v), _derivedmeta(v))
+end
+_keysof(v, ::Val) = v.time
+_keysof(_, d::Pair) = last(d)
+_named(::Symbol, keys::Base.OneTo) = keys # the plain axis stays plain
+_named(n::Symbol, keys) = DataVariable(keys; name = String(n))
+_named(n, keys) = keys
 
 _valof(::Val{i}) where {i} = i
+_valof(::Nothing) = nothing
 
-# New keys along time cannot say what a time-varying dimension becomes (interpolated? averaged?),
-# so a dimension that no longer fits becomes the plain axis. Vectors follow their axis by construction.
-_rebuild(v, data, ds, t) = DataVariable(data, map((k, d) -> _followdim(data, t, k, d), ntuple(identity, length(ds)), ds), t, _derivedmeta(v); name = name(v))
-_followdim(A, t, k, d::AbstractVector) = d
-_followdim(A, t, k, d) = _fitsdim(A, t, k, d) ? d : axes(A, k)
-
-# A `DataVariable` checks its own dimensions on construction, so they infer.
-_checkeddims(v) = _checkfits(v, dims(v), tdimnum(v))
-_checkeddims(v::DataVariable) = dims(v)
-
-_checkfits(A, ds, t) = _fits(A, ds, t) ? ds :
-    throw(DimensionMismatch("dimensions $(map(summary, ds)) with time dimension $t do not fit data of size $(size(A))"))
-
-_fits(A, ds, t) = length(ds) == ndims(A) && (isnothing(t) || 1 <= t <= ndims(A)) && all(map((k, d) -> _fitsdim(A, t, k, d), ntuple(identity, length(ds)), ds))
-
-# Layouts: see `DataVariable`.
-_fitsdim(A, t, k, d::AbstractVector) = length(d) == size(A, k)
-_fitsdim(A, t, k, d::AbstractMatrix) = !isnothing(t) && t != k && size(d) == (size(A, min(k, t)), size(A, max(k, t)))
-_fitsdim(A, t, k, d) = false
+_movecoord(::Nothing, newpos) = nothing
+_movecoord((axs, data)::Coord, newpos) = _movecoord(axs, data, newpos)
+function _movecoord(caxs, data, newpos)
+    axs = Int[]
+    for j in reverse(eachindex(caxs))
+        a = newpos[caxs[j]]
+        if a == 0
+            # Collapses to its first sample, so an empty axis has none to keep.
+            size(data, j) > 0 && _isconstant(data, j) || return nothing
+            data = data[ntuple(i -> i == j ? 1 : Colon(), ndims(data))...]
+        else
+            pushfirst!(axs, a)
+        end
+    end
+    return isempty(axs) ? nothing : _coord(Tuple(axs), data)
+end
+# `isequal`, so fill values (NaN) along it count as constant.
+_isconstant(A, j) = (s = selectdim(A, j, 1); all(k -> isequal(selectdim(A, j, k), s), 2:size(A, j)))
 
 # Derived variables read the metadata of `v` but write their own layer, so `r["units"] = ...` leaves `v` alone.
 _derivedmeta(v) = _overlay(getmeta(v))
