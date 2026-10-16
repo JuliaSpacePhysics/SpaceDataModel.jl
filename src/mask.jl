@@ -83,8 +83,13 @@ _float(::Type{<:Union{Int8, UInt8, Int16, UInt16, Float16}}) = Float32
 _float(::Type{T}) where {T} = float(T)
 
 _vec(::Type{C}, ::Nothing, default) where {C} = C[default]
-_vec(::Type{C}, v::AbstractVector, _) where {C} = C[C(x) for x in v]
-_vec(::Type{C}, x, _) where {C} = C[C(x)]
+_vec(::Type{C}, v::AbstractVector, default) where {C} = C[_check(C, x, default) for x in v]
+_vec(::Type{C}, x, default) where {C} = C[_check(C, x, default)]
+
+# Some CDAWeb masters store checks of numeric data as strings ("-1.00E+31", "1997, 146, 0")
+_check(::Type{C}, x, _) where {C} = C(x)
+_check(::Type{C}, x::AbstractString, default) where {C} = something(tryparse(C, x), default)
+_check(::Type{C}, ::Dates.AbstractTime, default) where {C} = default
 
 _component_dims(A, n, d::Integer) = d:d
 _component_dims(A, n, d::AbstractUnitRange) = d

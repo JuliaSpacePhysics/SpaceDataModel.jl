@@ -40,6 +40,9 @@
     @test c[2].fillval == [-1.0]
     @test Base.return_types(ValidityChecks, (Type{Float32}, Any, Any, Any)) == [ValidityChecks{Float32}]
 
+    s = ValidityChecks(Float32, "-1.00E+31", "1997, 146, 0", [DateTime(2030)])
+    @test isequal(mask_invalid(Float32[-1.0f31, -1.0f30, 1.0f30], s), Float32[NaN, -1.0f30, 1.0f30])
+
     overlapping = Float32.(1:1025)
     mask_invalid!(view(overlapping, 2:1025), view(overlapping, 1:1024))
     @test overlapping[2:end] == Float32.(1:1024)
