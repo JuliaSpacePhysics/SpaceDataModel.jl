@@ -83,7 +83,7 @@ struct DataVariable{T, N, A <: AbstractArray{T, N}, D <: Tuple, M} <: AbstractDa
     name::String
     metadata::M
     function DataVariable(data::A, dims::D, tdim, metadata::M; name = getmeta(metadata, "name", "")) where {T, N, A <: AbstractArray{T, N}, D <: Tuple, M}
-        _fits(data, dims, tdim) || throw(DimensionMismatch("dimensions $(map(summary, dims)) with time dimension $tdim do not fit data of size $(size(data))"))
+        _checkfits(data, dims, tdim)
         return new{T, N, A, D, M}(data, dims, tdim, string(name), metadata)
     end
 end
@@ -110,19 +110,18 @@ function _index(f, var, I)
     J, N = to_indices(var, I), ndims(var)
     # Fewer indices than dimensions index linearly
     length(J) >= N && all(j -> j isa Integer, J[(N + 1):end]) || return data
-    t, ds = tdimnum(var), dims(var)
+    t, ds = tdimnum(var), _checkeddims(var)
     kept = _kept(J, Val(1))
-    return rebuild(var, data, kept, map(n -> _slicedim(f, var, ds[_valof(n)], _valof(n), t, J), kept))
+    return rebuild(var, data, kept, map(n -> _slicedim(f, ds[_valof(n)], _valof(n), t, J), kept))
 end
 
 # `Val` positions of the non-scalar indices, from their types so the result is inferable.
 _kept(::Tuple{}, ::Val) = ()
 _kept(I::Tuple, ::Val{k}) where {k} = (rest = _kept(Base.tail(I), Val(k + 1)); first(I) isa Integer ? rest : (Val(k), rest...))
 
-_slicedim(f, var, d::AbstractVector, k, t, I) = f(d, I[k])
-# Indexed by its own axis alone, a matrix would slice linearly; one that does not fit is left to `rebuild`.
-_slicedim(f, var, d::AbstractMatrix, k, t, I) = !_fitsdim(var, t, k, d) ? d : k < t ? f(d, I[k], I[t]) : f(d, I[t], I[k])
-_slicedim(f, var, d, k, t, I) = d
+_slicedim(f, d::AbstractVector, k, t, I) = f(d, I[k])
+# Indexed by its own axis alone, a matrix would slice linearly.
+_slicedim(f, d::AbstractMatrix, k, t, I) = k < t ? f(d, I[k], I[t]) : f(d, I[t], I[k])
 
 # Broadcast
 # Reference: https://docs.julialang.org/en/v1/manual/interfaces/#man-interfaces-broadcasting
