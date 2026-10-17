@@ -197,7 +197,7 @@ function _index(f, var, I)
 end
 # Non-scalar indexing slices each coordinate along the axes it spans, with `f` as the data; a coordinate
 # whose axes are all indexed by integers is dropped.
-function _slicevar(f, var::DataVariable{T, N, D}, data, J) where {T, N, D}
+function _slicevar(f::F, var::DataVariable{T, N, D}, data, J) where {F, T, N, D}
     kept = _kept(J)
     g = c -> _slice(f, c, J)
     ds = Union{Nothing, Coord}[g(var.dims[_valof(n)]) for n in kept]
