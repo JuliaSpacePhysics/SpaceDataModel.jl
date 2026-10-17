@@ -1,11 +1,20 @@
 @testitem "AbstractDataVariable Broadcasting" begin
-    using SpaceDataModel: AbstractDataVariable, DataVariable
+    using SpaceDataModel: AbstractDataVariable, DataVariable, coords, dims, times
 
     var = DataVariable([1.0, 2.0, 3.0]; metadata = Dict("istest" => true))
     result1 = var .+ 1
     @test result1 isa DataVariable
     @test parent(result1) == [2.0, 3.0, 4.0]
     @test size(var .+ ones(3, 2)) == (3, 2)
+    using Dates
+    ts = DateTime(2020) .+ Day.(0:2)
+    v = DataVariable(rand(3, 1); time = 1 => ts, dims = (2 => [1.0],), coords = ((1, 2) => rand(3, 1), 1 => ["a", "b", "c"]))
+    r = v .+ ones(1, 2, 4)  # extends axis 2 and appends axis 3
+    @test times(r) == ts && dims(r, 2) == 1:2 && dims(r, 3) == 1:4 && only(coords(r)) == ((1,) => ["a", "b", "c"])
+    v1 = DataVariable([1.0]; time = ts[1:1])
+    @test_throws DimensionMismatch v1 .+ ones(3)
+    v3 = DataVariable(rand(3); time = ts)
+    @test times(v1 .+ v3) == times(DataVariable([1.0]) .+ v3) == ts
     # Results are those of the parent array
     @test DataVariable(fill(1.0)) .+ 1 === 2.0
 end
@@ -70,15 +79,15 @@ end
     @test units(r) == "pT" && units(v) == "nT"
 end
 
-@testitem "same-size similar and slices infer a small union of concrete types" begin
+@testitem "same-shape results and slices infer" begin
     using SpaceDataModel: DataVariable
     using Dates
     v = DataVariable(rand(3, 100); time = 2 => DateTime(2020) .+ Day.(0:99), dims = (1 => rand(3, 100),))  # time-varying dimension
-    # `map` and loops over `eachcol` split such a union; an abstract type makes them dispatch per element.
-    for (f, args) in ((similar, (Type{Float32}, Dims{2})), (view, (Colon, Int)), (view, (Colon, UnitRange{Int})))
-        T = only(Base.return_types(f, (typeof(v), args...)))
-        @test all(isconcretetype, Base.uniontypes(T))
+    for f in (similar, copy, x -> map(abs, x), x -> x .* 2, x -> x .+ ones(3), x -> view(x, :, 1), x -> view(x, :, 1:2))
+        @test isconcretetype(only(Base.return_types(f, (typeof(v),))))
     end
+    # any `similar` shape is allowed, so only a small union of concrete types
+    @test all(isconcretetype, Base.uniontypes(only(Base.return_types(similar, (typeof(v), Type{Float32}, Dims{2})))))
 end
 
 @testitem "operations infer" begin

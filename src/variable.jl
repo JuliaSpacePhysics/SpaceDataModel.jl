@@ -174,11 +174,14 @@ tdimnum(::DataVariable{T, N, D}) where {T, N, D} = D
 _dim(v::DataVariable, i) = (c = v.dims[i]; isnothing(c) ? axes(v.data, i) : last(c))
 coords(v::DataVariable) = v.coords
 
-Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T} = _wrap(A, similar(parent(A), T, sz))
+# Same shape as `A`, so the result type does not depend on a size check.
+Base.similar(A::AbstractDataVariable, ::Type{T}) where {T} = rebuild(A, similar(parent(A), T))
+Base.map(f, A::AbstractDataVariable) = rebuild(A, map(f, parent(A)))
 
-# `data` derived from `A`: same-size data (e.g. broadcasting, `copy`) keeps the dimensions.
-_wrap(A, data::AbstractArray) = size(data) == size(A) ? rebuild(A, data) : DataVariable(data; metadata = _derivedmeta(A), name = name(A))
-_wrap(A, x) = x
+function Base.similar(A::AbstractDataVariable, ::Type{T}, sz::Dims) where {T}
+    data = similar(parent(A), T, sz)
+    return size(data) == size(A) ? rebuild(A, data) : DataVariable(data; metadata = _derivedmeta(A), name = name(A))
+end
 
 Base.getindex(var::AbstractDataVariable, I...) = _index(getindex, var, I)
 Base.view(var::AbstractDataVariable, I...) = _index(view, var, I)
@@ -254,16 +257,40 @@ Base.BroadcastStyle(::Type{<:AbstractDataVariable}) = ArrayStyle{AbstractDataVar
 
 # Broadcasts over the parents, so the result is what they give (e.g. a scalar for 0-dim, a range for
 # ranges), then wraps it; a loop into a `similar` destination would run over a union of types.
-Base.copy(bc::Broadcasted{ArrayStyle{AbstractDataVariable}}) = _wrap(find_datavariable(bc), Broadcast.materialize(_parents(bc)))
+function Base.copy(bc::Broadcasted{ArrayStyle{AbstractDataVariable}})
+    data = Broadcast.materialize(_parents(bc))
+    return data isa AbstractArray ? _broadcasted(DataVariable(_axesvar(bc, size(data))), data) : data
+end
 _parents(bc::Broadcasted) = Broadcast.broadcasted(bc.f, map(_parents, bc.args)...)
 _parents(x::AbstractDataVariable) = parent(x)
 _parents(x) = x
 
-find_datavariable(x::Broadcasted) = find_datavariable(x.args)
-function find_datavariable(x::Tuple)
-    found = find_datavariable(x[1])
-    return isnothing(found) ? find_datavariable(Base.tail(x)) : found
+# `data` extends length-1 axes of `v` and appends others; coordinates along an extended axis are dropped.
+function _broadcasted(v::DataVariable{T, N, D}, data) where {T, N, D}
+    size(data) == size(v) && return rebuild(v, data)
+    fits((axs, _)) = all(a -> size(data, a) == size(v, a), axs)
+    ds = Union{Nothing, Coord}[isnothing(c) || fits(c) ? c : nothing for c in v.dims]
+    append!(ds, Iterators.repeated(nothing, ndims(data) - ndims(v)))
+    return DataVariable{D}(data, v.time, ds, filter(fits, v.coords), name(v), _derivedmeta(v))
 end
-find_datavariable(::Tuple{}) = nothing
-find_datavariable(x::AbstractDataVariable) = x
-find_datavariable(::Any) = nothing
+
+# The variable whose axes a result of size `sz` keeps: one it does not extend, else one whose time axis it does
+# not extend (e.g. `ref .- v` with `ref` a single sample of `v`).
+function _axesvar(bc, sz)
+    fits(v, axs) = all(a -> sz[a] == size(v, a), axs)
+    return @something(
+        find_datavariable(v -> fits(v, 1:ndims(v)), bc),
+        find_datavariable(v -> (D = tdimnum(v); isnothing(D) || fits(v, (D,))), bc),
+        throw(DimensionMismatch("broadcasting extends the time axis of every variable; broadcast their parents instead"))
+    )
+end
+
+# The first variable among the arguments of `x` for which `f` holds.
+@inline find_datavariable(f, x::Broadcasted) = find_datavariable(f, x.args)
+@inline function find_datavariable(f, x::Tuple)
+    found = find_datavariable(f, x[1])
+    return isnothing(found) ? find_datavariable(f, Base.tail(x)) : found
+end
+find_datavariable(f, ::Tuple{}) = nothing
+find_datavariable(f, x::AbstractDataVariable) = f(x) ? x : nothing
+find_datavariable(f, ::Any) = nothing
