@@ -16,7 +16,6 @@ makedocs(
         "Home" => "index.md",
         "Interface" => "interface.md",
         "Metadata Schemas" => "schema_guide.md",
-        "Coordinate Systems" => "coordinate.md",
         "API" => "api.md",
     ],
     checkdocs = :exports,

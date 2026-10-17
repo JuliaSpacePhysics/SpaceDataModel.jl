@@ -8,6 +8,10 @@
 - **Breaking**: `DataVariable{T, N, D, A, Tm, M}`: the time dimension `D` and the times' type are type parameters, other coordinates are stored untyped, so variables share a few types whatever their coordinates.
 - Dropping or resampling the time axis (`tmean`, `tinterp`) keeps a time-varying dimension constant over time as a vector, instead of the plain axis.
 
+### Removed
+
+- **Breaking**: `AbstractReferenceFrame`, `AbstractRepresentation`, `Cartesian3`, `Spherical`, `Geodetic` and `getcsys` moved to GeoCotrans; `AbstractCoordinateSystem`, `AbstractCoordinateVector` and `AbstractReferenceSystem` are removed.
+
 ## [0.5.1] - 2026-10-15
 
 ### Fixed

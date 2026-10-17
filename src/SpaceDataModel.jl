@@ -7,8 +7,6 @@ using Base: @propagate_inbounds
 export Registry, Dataset, Archive, Product, Transformed, Event
 export AbstractEvent
 export AbstractDataVariable
-export AbstractReferenceFrame, AbstractRepresentation
-export AbstractCoordinateSystem, AbstractCoordinateVector, getcsys
 export getdata, available
 export getmeta, setmeta!, setmeta, units
 export getdim
@@ -46,9 +44,6 @@ include("variable_interface.jl")
 const getdim = dims
 include("variable.jl")
 include("mask.jl")
-include("coord.jl")
-include("coordinates/reference_frame.jl")
-include("coordinates/representation.jl")
 
 include("schemas/schema.jl"); export get_schema, SchemaDict
 
