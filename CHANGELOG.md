@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-17
+
 ### Changed
 
 - **Breaking**: `DataVariable(data; time = d => t, dims = (i => c, …), coords, metadata, name)` replaces `DataVariable(data, dims, tdim, metadata)` and `DataVariable(data, metadata)`.
@@ -132,7 +134,8 @@ Model-the-contract redesign. Breaking throughout.
 
 - **Breaking**: remove function `abbr` (previously exported)
 
-[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.1...HEAD
+[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.0...v0.4.2
