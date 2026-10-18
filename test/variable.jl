@@ -145,6 +145,9 @@ end
     @test (@inferred times(v)) isa Vector{DateTime}
     @test times(@inferred v[2:3, 2:3]) == times(v)[2:3]
     @test (@inferred v[1, :]) isa DataVariable
+    # A time coordinate with attributes
+    w = DataVariable(rand(3, 4); time = 2 => DataVariable(Date(2020) .+ Day.(0:3)))
+    @test isconcretetype(only(Base.return_types(getindex, Tuple{typeof(w), Int, Colon})))
 end
 
 @testitem "indexing with CartesianIndex or trailing integers" begin

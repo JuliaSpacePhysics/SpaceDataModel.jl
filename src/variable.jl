@@ -226,9 +226,10 @@ _slice(f, axs, c, J) = all(a -> J[a] isa Integer, axs) ? nothing :
     Coord(Tuple(count(k -> !(J[k] isa Integer), 1:a) for a in axs if !(J[a] isa Integer)), f(c, map(a -> J[a], axs)...))
 
 _slicetime(f, t, J, ::Val{nothing}) = nothing
-_slicetime(f, t, J, ::Val{D}) where {D} = _slicekeys(f, t, J[D])
-_slicekeys(f, t, ::Integer) = nothing
+_slicetime(f, t, J, ::Val{D}) where {D} = J[D] isa Integer ? nothing : _slicekeys(f, t, J[D])
 _slicekeys(f, t, j) = f(t, j)
+# Not through `getindex`/`view`: re-entering them with the converted index widens inference of the result.
+_slicekeys(f, t::DataVariable{T, 1}, j) where {T} = _slicevar(f, t, f(parent(t), j), (j,))
 
 # A view is the variable itself, so writes to its metadata reach `var`.
 _indexmeta(::typeof(view), var) = getmeta(var)
