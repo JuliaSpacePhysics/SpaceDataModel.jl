@@ -170,3 +170,10 @@ end
     @test units(DataVariable([1.0]; metadata = Dict("CATDESC" => "B", "UNITS" => "nT"))) == "nT"
     @test units(DataVariable([1.0]; metadata = Dict("units" => "m/s"))) == "m/s"
 end
+
+@testitem "setmeta keeps the time axis" begin
+    using SpaceDataModel: DataVariable, tdimnum
+    v = DataVariable([1.0 2.0; 3.0 4.0]; time = 2 => [10, 20], metadata = Dict("a" => 1))
+    w = setmeta(v, "b" => 2)
+    @test tdimnum(w) == 2 && getmeta(w) == Dict("a" => 1, "b" => 2)
+end

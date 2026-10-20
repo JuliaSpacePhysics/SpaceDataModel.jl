@@ -1,5 +1,5 @@
 module SpaceDataModel
-using ConstructionBase: setproperties
+using ConstructionBase: ConstructionBase, setproperties
 import TimeseriesUtilities: axiskeys, dimnum, rebuild, rekey, tdimnum, times, unwrap
 import Base: ∘
 using Base: @propagate_inbounds

@@ -109,6 +109,9 @@ struct DataVariable{T, N, D, A <: AbstractArray{T, N}, Tm, M} <: AbstractDataVar
     end
 end
 
+# `setproperties` rebuilds from the fields in order; the time axis `D` is not among them.
+ConstructionBase.constructorof(::Type{<:DataVariable{T, N, D}}) where {T, N, D} = DataVariable{D}
+
 function _checkcoords(data, ::Val{D}, time, dims, coords) where {D}
     length(dims) == ndims(data) || throw(DimensionMismatch("$(length(dims)) dimensions for data of size $(size(data))"))
     if isnothing(D)
