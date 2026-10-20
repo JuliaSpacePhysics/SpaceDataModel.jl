@@ -90,7 +90,7 @@ end
     @test dims(x, :X) == X(1:3)
     @test_throws ErrorException dims(x, :time)
 
-    @test string(name(x)) == ""
+    @test name(x) == ""
     @test unwrap(Ti(view([1, 2, 3, 4, 5], 2:3))) == view(1:5, 2:3)
 
     @testset "time dimension" begin
@@ -105,4 +105,9 @@ end
         @test tdimnum(x) == 2
         @test (@allocated tdimnum(x)) == 0
     end
+end
+
+@testitem "name of a named DimArray is a string" begin
+    using DimensionalData
+    @test SpaceDataModel.name(rand(X(3); name = :B)) == "B"
 end
