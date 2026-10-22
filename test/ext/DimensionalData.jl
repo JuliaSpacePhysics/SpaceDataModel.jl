@@ -34,7 +34,7 @@
     @test isnothing(attrs[:labels])
 
     using SpaceDataModel: depend_1
-    @test depend_1(rand(X(3), Ti(5), Y(2))) == X(1:3)
+    @test depend_1(rand(X(1:3), Ti(5), Y(2))) == X(1:3)
 
     B = DimArray(rand(3, 2), (X(["Bx", "By", "Bz"]), Ti(1:2)); metadata = Dict("CATDESC" => "B"))
     @test ISTPSchema()(B[X = 2:3], :labels) == ["By", "Bz"]
@@ -83,11 +83,11 @@ end
     using DimensionalData
     using SpaceDataModel: name, meta, dims, timedim, times, unwrap
 
-    x = rand(X(3), Y(4), Ti(5))
+    x = rand(X(1:3), Y(4), Ti(1:5))
     @test meta(x) == DimensionalData.NoMetadata()
-    @test dims(x) == DimensionalData.dims(x)
     @test dims(x, :Ti) == Ti(1:5)
-    @test dims(x, :X) == X(1:3)
+    @test dims(x, "X") == X(1:3)
+    @test isnothing(dims(x, :Y))  # found by name, without coordinates
     @test_throws ErrorException dims(x, :time)
 
     @test name(x) == ""
@@ -97,9 +97,8 @@ end
         using SpaceDataModel: tdimnum
         x = rand(X(3), Ti(5), Z(2))
         @test tdimnum(x) == 2
-        @test timedim(x) == Ti([1, 2, 3, 4, 5])
-        @test times(x) == [1, 2, 3, 4, 5]
-        @test name(timedim(x)) == :Ti
+        @test isnothing(timedim(x)) && isnothing(dims(x, 1))  # `Ti(5)` has no coordinates
+        @test_throws ArgumentError times(x)
 
         x = rand(X(3), Dim{:time}(5), Z(2))
         @test tdimnum(x) == 2

@@ -9,7 +9,7 @@ Optional:
 * `units(v)`: the units of the variable
 * `getmeta(v)`: the metadata of the variable
 * `name(v)`: the name of the variable
-* `dims(v, i)`: the `i`-th dimension of the variable
+* `dims(v, i)`: the coordinate of the `i`-th dimension of the variable
 * `dims(v, name)`: the dimension named `name` of the variable
 * `coords(v)`: further coordinates, `axes => values` (e.g. labels of a dimension)
 """
@@ -17,7 +17,7 @@ abstract type AbstractDataVariable{T, N} <: AbstractArray{T, N} end
 
 # https://docs.julialang.org/en/v1/manual/interfaces/#man-interface-array
 Base.parent(var::AbstractDataVariable) = var.data
-dims(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : axes(var, i)
+dims(var::AbstractDataVariable, i::Integer) = hasfield(typeof(var), :dims) ? getfield(var, :dims)[i] : nothing
 Base.iterate(A::AbstractDataVariable, args...) = iterate(parent(A), args...)
 for f in (:size, :Array)
     @eval Base.$f(var::AbstractDataVariable) = $f(parent(var))
@@ -89,7 +89,7 @@ end
     DataVariable(v::AbstractDataVariable)
 
 In-memory variable: `data` with times `time` (`d => t` along axis `d`, or `t` for a vector), coordinates `dims`
-of its other axes (`i => c`; axes left out are plain `Base.axes(data, i)`), further coordinates `coords`
+of its other axes (`i => c`), further coordinates `coords`
 (`axes => c`, e.g. `2 => labels` or `(1, 3) => bins`) that indexing slices along with the data.
 
 A coordinate in `dims` is a vector along its axis or, when time-varying (e.g. energy bins),
@@ -164,8 +164,9 @@ function DataVariable(v::AbstractDataVariable)
     )
 end
 
-# The coordinate `d` of axis `i` with time axis `t`, `nothing` for the plain axis. Equal keys (`1:3`) are a coordinate.
-_dimcoord(data, d::AbstractVector, i, t) = d === axes(data, i) ? nothing : Coord((i,), d)
+# The coordinate `d` of axis `i` with time axis `t`; `nothing` for the plain axis.
+_dimcoord(data, ::Nothing, i, t) = nothing
+_dimcoord(data, d::AbstractVector, i, t) = Coord((i,), d)
 _dimcoord(data, d::AbstractMatrix, i, t) =
     isnothing(t) || t == i ? throw(DimensionMismatch("matrix dimension $i without another time dimension")) : Coord(minmax(i, t), d)
 _dimcoord(data, d, i, t) = throw(DimensionMismatch("dimension $i is a $(summary(d)), not a vector or time-varying matrix"))
@@ -174,7 +175,7 @@ Base.IndexStyle(::Type{<:DataVariable{T, N, D, A}}) where {T, N, D, A} = IndexSt
 
 tdimnum(::DataVariable{T, N, D}) where {T, N, D} = D
 @inline dims(v::DataVariable{T, N, D}, i::Integer) where {T, N, D} = !isnothing(D) && i == D ? v.time : _dim(v, i)
-_dim(v::DataVariable, i) = (c = v.dims[i]; isnothing(c) ? axes(v.data, i) : last(c))
+_dim(v::DataVariable, i) = (c = v.dims[i]; isnothing(c) ? nothing : last(c))
 coords(v::DataVariable) = v.coords
 
 # Same shape as `A`, so the result type does not depend on a size check.

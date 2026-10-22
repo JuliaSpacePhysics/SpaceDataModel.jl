@@ -1,7 +1,7 @@
 using TestItems, TestItemRunner
 using Test
 
-@run_package_tests
+@run_package_tests filter = ti -> isempty(VERSION.prerelease) || !(:jet in ti.tags)
 
 @testitem "SpaceDataModel.jl" begin
     SpaceDataModel.workload()
@@ -58,7 +58,7 @@ end
     end
 end
 
-@testitem "JET - Workload" begin
+@testitem "JET - Workload" tags = [:jet] begin
     using JET
     println(@report_opt ignored_modules = (Base,) SpaceDataModel.workload())
     @test_call SpaceDataModel.workload()

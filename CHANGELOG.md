@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking**: `dims(v, i)` of a dimension without coordinates is `nothing`, not `axes(v, i)`; `times` throws for one, and an axis passed as a coordinate (`dims = (2 => axes(data, 2),)`) is kept.
+
 ## [0.6.0] - 2026-10-17
 
 ### Changed

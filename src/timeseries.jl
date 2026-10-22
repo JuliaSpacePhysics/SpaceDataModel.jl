@@ -44,7 +44,7 @@ function rebuild(v::DataVariable{T, N, D}, data, newdims::Tuple) where {T, N, D}
 end
 _keysof(v, ::Val) = v.time
 _keysof(_, d::Pair) = last(d)
-_named(::Symbol, keys::Base.OneTo) = keys # the plain axis stays plain
+_named(::Symbol, ::Nothing) = nothing
 _named(n::Symbol, keys) = DataVariable(keys; name = String(n))
 _named(n, keys) = keys
 
