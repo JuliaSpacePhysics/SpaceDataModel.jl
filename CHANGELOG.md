@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-23
+
 ### Changed
 
 - **Breaking**: `dims(v, i)` of a dimension without coordinates is `nothing`, not `axes(v, i)`; `times` throws for one, and an axis passed as a coordinate (`dims = (2 => axes(data, 2),)`) is kept.
@@ -138,7 +140,8 @@ Model-the-contract redesign. Breaking throughout.
 
 - **Breaking**: remove function `abbr` (previously exported)
 
-[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.6.0...HEAD
+[unreleased]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.6.1...v0.7.0
 [0.6.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/JuliaSpacePhysics/SpaceDataModel.jl/compare/v0.4.2...v0.5.0
