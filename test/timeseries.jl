@@ -9,7 +9,7 @@
         meta::Dict{String, Any}
     end
     SpaceDataModel.tdimnum(::Source) = 1
-    SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : axes(v, i)
+    SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : nothing
 
     A = [1.0 10.0; NaN 20.0; 3.0 30.0; 4.0 400.0; 5.0 50.0]
     t = [0.0, 1.0, 2.0, 4.0, 5.0]

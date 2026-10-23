@@ -10,7 +10,7 @@
     ts = DateTime(2020) .+ Day.(0:2)
     v = DataVariable(rand(3, 1); time = 1 => ts, dims = (2 => [1.0],), coords = ((1, 2) => rand(3, 1), 1 => ["a", "b", "c"]))
     r = v .+ ones(1, 2, 4)  # extends axis 2 and appends axis 3
-    @test times(r) == ts && dims(r, 2) == 1:2 && dims(r, 3) == 1:4 && only(coords(r)) == ((1,) => ["a", "b", "c"])
+    @test times(r) == ts && isnothing(dims(r, 2)) && isnothing(dims(r, 3)) && only(coords(r)) == ((1,) => ["a", "b", "c"])
     v1 = DataVariable([1.0]; time = ts[1:1])
     @test_throws DimensionMismatch v1 .+ ones(3)
     v3 = DataVariable(rand(3); time = ts)
@@ -36,7 +36,7 @@ end
         meta::Dict{String, Any}
     end
     SpaceDataModel.tdimnum(::Source) = 1
-    SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : axes(v, i)
+    SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : [100.0, 200.0]
     SpaceDataModel.name(::Source) = "B"
 
     ts = DateTime(2020) .+ Day.(0:2)
@@ -44,6 +44,7 @@ end
     v = Source(A, ts, Dict{String, Any}("units" => "nT"))
     # time moved to the last axis
     @test tdimnum(rebuild(v, permutedims(A), (Val(2), Val(1)))) == 2
+    @test dims(rebuild(v, 2A), 2) == [100.0, 200.0]  # a computed coordinate survives conversion
 
     energy = DataVariable([10.0, 20.0]; metadata = Dict("name" => "energy"))
     w = DataVariable(A; time = 1 => ts, dims = (2 => energy,))
@@ -55,7 +56,7 @@ end
     @test dims(tclip(DataVariable(permutedims(A); time = 2 => ts, dims = (1 => permutedims(E),)), ts[2], ts[3]), 1) == permutedims(E[2:3, :])
     @test dims(rebuild(tv, permutedims(A), (Val(2), Val(1))), 1) == permutedims(E)  # in the new axis order
     r = rebuild(tv, A[2:3, :], 1, ts[2:3])
-    @test times(r) == ts[2:3] && dims(r, 2) == 1:2
+    @test times(r) == ts[2:3] && isnothing(dims(r, 2))
     @test_throws DimensionMismatch DataVariable(A; time = 1 => ts[1:2])
     @test_throws DimensionMismatch DataVariable(A; time = 2 => ts, dims = (1 => E,))
     @test_throws ArgumentError DataVariable(A; time = ts)  # which axis?
@@ -70,7 +71,7 @@ end
     @test times(r) == ts[2:3] && units(r) == "nT" && name(r) == "B"
     @test times(view(v, [1, 3], 2)) == ts[[1, 3]]
     @test !hastimedim(v[2, :])
-    @test dims(v[:, 2:2], 2) == 1:1  # a plain axis stays plain, renumbered
+    @test dims(v[:, 2:2], 2) == [200.0]
     @test times(v .+ 1) == ts && units(v .+ 1) == "nT"
     r2 = r[1:1, :]
     r2["units"] = "pT"
@@ -120,7 +121,7 @@ end
     # a time-varying coordinate of a dropped axis runs along time
     @test dims(v[2, 2:3], 1) == ts[2:3] && last(only(coords(v[2, 2:3]))) == E[2, 2:3]
     # reductions keep coordinates constant along the reduced axis
-    @test dims(tmean(v), 1) == 1:2 && last(only(coords(tmean(v)))) == ["lo", "hi"]
+    @test isnothing(dims(tmean(v), 1)) && last(only(coords(tmean(v)))) == ["lo", "hi"]
     @test isequal(dims(tmean(DataVariable(rand(2, 3); time = 2 => ts, dims = (1 => [10.0 10.0 10.0; NaN NaN NaN],))), 1), [10.0, NaN])
     @test size(tmean(DataVariable(zeros(2, 0); time = 2 => DateTime[], dims = (1 => zeros(2, 0),)))) == (2,)
     B = rand(2, 4, 3)
@@ -162,7 +163,7 @@ end
 
 @testitem "dims ignores a non-AbstractDataVariable dims field" begin
     # `Base.ReshapedArray` stores its size in a `dims` field
-    @test SpaceDataModel.dims(reshape(view(collect(1:6), :), 2, 3), 1) == 1:2
+    @test isnothing(SpaceDataModel.dims(reshape(view(collect(1:6), :), 2, 3), 1))
 end
 
 @testitem "units follows the metadata schema" begin
