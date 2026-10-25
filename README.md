@@ -45,6 +45,8 @@ Check a dataset against the contract in its tests with `using Test; SpaceDataMod
 
 `Dataset` is the `AbstractDataset` for file archives: a name templated over selector domains, and a source such as `Archive`, see Quick Start.
 
+`SpaceDataModel.OverlayDict(base, overlay)` layers writable metadata over (read-only) attributes (e.g. CDF file) without copying.
+
 ## Metadata Schemas
 
 Resolve semantic attributes (`:name`, `:unit`, `:desc`, …) against heterogeneous metadata formats (ISTP, HAPI, Madrigal).

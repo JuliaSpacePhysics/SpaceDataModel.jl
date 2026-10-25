@@ -1,26 +1,26 @@
 # https://github.com/rafaqz/DimensionalData.jl/blob/main/src/Lookups/metadata.jl
 
 """
-    NoMetadata
+    NoMetadata()
 
-Indicates an object has no metadata. But unlike using `nothing`, 
-`get`, `keys` and `haskey` will still work on it, `get` always
-returning the fallback argument. `keys` returns `()` while `haskey`
-always returns `false`.
+Empty, immutable metadata.
 """
 struct NoMetadata end
 
 Base.keys(::NoMetadata) = ()
 Base.values(::NoMetadata) = ()
+Base.length(::NoMetadata) = 0
 Base.iterate(::NoMetadata) = nothing
 
-# Allow merging NoMetadata with a Dict or keyword arguments
-Base.merge(::NoMetadata, d) = isempty(d) ? NoMetadata() : copy(d)
+# Values widen to `Any` so a later `setindex!` is not bound
+Base.merge(::NoMetadata, d) = isempty(d) ? NoMetadata() : (p = pairs(d); Dict{keytype(p), Any}(p))
 Base.merge(d::AbstractDict, ::NoMetadata) = copy(d)
-Base.merge(::NoMetadata, d, rest...) = merge(d, rest...)
+Base.merge(nm::NoMetadata, d, rest...) = merge(merge(nm, d), rest...)
 
-Base.haskey(::NoMetadata, args...) = false
+Base.haskey(::NoMetadata, key) = false
+Base.getindex(::NoMetadata, key) = throw(KeyError(key))
 Base.get(::NoMetadata, key, default = nothing) = default
+Base.get(f::Base.Callable, ::NoMetadata, key) = f()
 
 """
     OverlayDict(base, overlay)

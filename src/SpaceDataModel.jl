@@ -10,6 +10,7 @@ export AbstractDataVariable
 export getdata, available
 export getmeta, setmeta!, setmeta, units
 export getdim
+VERSION >= v"1.11" && eval(Meta.parse("public NoMetadata, OverlayDict"))
 
 # API
 

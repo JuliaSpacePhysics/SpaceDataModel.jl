@@ -11,6 +11,11 @@
     @test merge(nm, Dict()) == nm # Test merging with empty Dict
     @test merge(nm, nm) == nm # Test merging with NoMetadata
     @test merge(nm, dict1, nm) == dict1
+    @test merge(nm, Dict(), Dict()) === nm
+    @test merge(nm, (; a = 1)) == Dict(:a => 1)
+    @test collect(nm) == []
+    @test_throws KeyError nm[:a]
+    @test get(() -> 0, nm, :a) == 0
 end
 
 @testitem "NoMetadata in model constructors" begin
@@ -20,6 +25,7 @@ end
     ds = Dataset("d", nothing; metadata = NoMetadata(), extra_key = "value")
     @test ds.metadata isa AbstractDict
     @test ds.metadata[:extra_key] == "value"
+    ds.metadata[:other] = 1
 end
 
 @testitem "OverlayDict" begin

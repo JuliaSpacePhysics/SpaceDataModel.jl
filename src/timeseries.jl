@@ -72,6 +72,6 @@ _isconstant(A, j) = (s = selectdim(A, j, 1); all(k -> isequal(selectdim(A, j, k)
 
 # Derived variables read the metadata of `v` but write their own layer, so `r["units"] = ...` leaves `v` alone.
 _derivedmeta(v) = _overlay(getmeta(v))
-_overlay(m::OverlayDict) = OverlayDict(m.base, copy(m.overlay))
-_overlay(m::AbstractDict) = OverlayDict(m, Dict{keytype(m), valtype(m)}())
+_overlay(m::OverlayDict) = OverlayDict(m.base, Dict{keytype(m.overlay), Any}(m.overlay))
+_overlay(m::AbstractDict) = OverlayDict(m, Dict{keytype(m), Any}())
 _overlay(m) = m
