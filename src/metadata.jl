@@ -37,16 +37,17 @@ OverlayDict{K, V}(base) where {K, V} = OverlayDict(base, Dict{K, V}())
 OverlayDict(base::B, overlay::O) where {B, O} =
     OverlayDict{Union{keytype(base), keytype(overlay)}, Union{valtype(base), valtype(overlay)}, B, O}(base, overlay)
 
+# Through the three-argument `get` alone as AbstractDicts need not define `get(f, d, key)`
+struct NoKey end
+
 function Base.getindex(d::OverlayDict, key)
-    return get(d.overlay, key) do
-        d.base[key]
-    end
+    v = get(d.overlay, key, NoKey())
+    return v isa NoKey ? d.base[key] : v
 end
 
 function Base.get(d::OverlayDict, key, default)
-    return get(d.overlay, key) do
-        get(d.base, key, default)
-    end
+    v = get(d.overlay, key, NoKey())
+    return v isa NoKey ? get(d.base, key, default) : v
 end
 
 Base.setindex!(d::OverlayDict, value, key) = setindex!(d.overlay, value, key)
