@@ -30,10 +30,10 @@ end
     using TimeseriesUtilities: tclip, tselect
     using Dates
 
-    struct Source{T, N, A <: AbstractArray{T, N}} <: AbstractDataVariable{T, N}
+    struct Source{T, N, A <: AbstractArray{T, N}, M} <: AbstractDataVariable{T, N}
         data::A
         time::Vector{DateTime}
-        meta::Dict{String, Any}
+        meta::M
     end
     SpaceDataModel.tdimnum(::Source) = 1
     SpaceDataModel.dims(v::Source, i::Integer) = i == 1 ? v.time : [100.0, 200.0]
@@ -41,7 +41,7 @@ end
 
     ts = DateTime(2020) .+ Day.(0:2)
     A = [1.0 2.0; 3.0 4.0; 5.0 6.0]
-    v = Source(A, ts, Dict{String, Any}("units" => "nT"))
+    v = Source(A, ts, Dict("units" => "nT"))
     # time moved to the last axis
     @test tdimnum(rebuild(v, permutedims(A), (Val(2), Val(1)))) == 2
     @test dims(rebuild(v, 2A), 2) == [100.0, 200.0]  # a computed coordinate survives conversion
@@ -75,6 +75,7 @@ end
     @test times(v .+ 1) == ts && units(v .+ 1) == "nT"
     r2 = r[1:1, :]
     r2["units"] = "pT"
+    r2["FILLVAL"] = -1.0
     @test units(r) == units(v) == "nT"
     view(r, 1:1, :)["units"] = "pT"
     @test units(r) == "pT" && units(v) == "nT"
