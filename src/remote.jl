@@ -25,22 +25,22 @@ function localize(url; dir=datadir(), update=false)
 end
 
 """
-    resolve_url(url; refresh=false)
+    resolve_url(url; refresh=false, dir=datadir())
 
 Concrete URL for `url`, where each `*` in the file name is replaced with the highest version field
 published in the directory, or `nothing` if the directory lists no such file.
+When the directory cannot be listed (e.g., the server is down), the highest version cached under `dir` stands in.
 
 A field matches any width and any separator (e.g., `v03`, `v03.06`, `v03_01`, `v1.1.10`). 
 A name may carry more than one, as MAVEN's `…_v02_r00.cdf` does; fields rank left to right.
 """
-function resolve_url(url; refresh=false)
+function resolve_url(url; refresh=false, dir=datadir())
     occursin('*', url) || return url
-    dir, name = _split_url(url)
-    occursin('*', dir) &&
+    parent, name = _split_url(url)
+    occursin('*', parent) &&
         throw(ArgumentError("wildcard outside the file name of $(repr(url)); a directory cannot be listed unless it is named"))
     re = _name_regex(name)
-    names = tryreaddir(dir; refresh)
-    isnothing(names) && return nothing
+    names = @something(tryreaddir(parent; refresh), _cached_names(parent, dir), return nothing)
     best, bestkey = nothing, nothing
     for n in names
         m = match(re, n)
@@ -50,11 +50,13 @@ function resolve_url(url; refresh=false)
             best, bestkey = n, key
         end
     end
-    return isnothing(best) ? nothing : dir * best
+    return isnothing(best) ? nothing : parent * best
 end
 
+_cached_names(url, dir) = (path = local_path(url, dir); isdir(path) ? readdir(path) : nothing)
+
 """
-    remotefiles(p::FilePattern, t0, t1; refresh=false, version="*", kw...) :: Vector{String}
+    remotefiles(p::FilePattern, t0, t1; refresh=false, version="*", dir=datadir(), kw...) :: Vector{String}
 
 URLs of the files over `[t0, t1)`. Steps with no published file are dropped
 rather than an error, since a gap in an archive is normal.
@@ -66,14 +68,14 @@ remotefiles(p::FilePattern, t0, t1; kw...) = String[u for (_, u) in _resolve_ste
 available(p::FilePattern, t0, t1; kw...) = DateTime[t for (t, u) in _resolve_steps(p, t0, t1; kw...) if !isnothing(u)]
 
 # Each step start with its URL, `nothing` where unpublished.
-function _resolve_steps(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", kw...)
+function _resolve_steps(p::FilePattern, t0, t1; refresh=false, ntasks=8, version="*", dir=datadir(), kw...)
     q = p(; version, kw...)
     steps = _stepstarts(p, t0, t1)
     urls = map(q, steps)
     refresh && lock(_LISTINGS_LOCK) do
         foreach(u -> delete!(_LISTINGS, first(_split_url(u))), urls)
     end
-    return zip(steps, asyncmap(resolve_url, urls; ntasks))
+    return zip(steps, asyncmap(u -> resolve_url(u; dir), urls; ntasks))
 end
 
 _split_url(url) = (name = basename(url); (url[1:(end - ncodeunits(name))], name))

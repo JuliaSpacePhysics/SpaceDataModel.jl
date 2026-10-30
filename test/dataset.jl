@@ -64,6 +64,12 @@ end
     @test basename.(getdata(files, "2020-10-01", "2020-10-03"; dir=dst)) == names
     @test SpaceDataModel.remotefiles(files, "2020-10-01", "2020-10-03") == dir .* names
 
+    # An unlistable directory serves the newest version cached under `dir`
+    touch(joinpath(SpaceDataModel.local_path(dir, dst), "f_20201002_v01.cdf"))
+    _LISTINGS[dir] = Threads.@spawn nothing
+    @test basename.(getdata(files, "2020-10-02", "2020-10-03"; dir=dst)) == ["f_20201002_v02.cdf"]
+    _LISTINGS[dir] = Threads.@spawn names
+
     # A range the archive publishes nothing for throws, rather than handing the reader an
     # empty list; `available` answers the same query with an empty (typed) result.
     @test_throws ArgumentError getdata(ds, "2021-01-01", "2021-01-03"; dir=dst)

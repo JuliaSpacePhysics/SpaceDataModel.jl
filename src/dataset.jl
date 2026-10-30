@@ -43,7 +43,7 @@ end
 Archive(pattern) = Archive(pattern, (paths, t0, t1) -> paths)
 
 function _getdata(a::Archive, t0, t1; version="*", refresh=false, dir=datadir(), update=false, ntasks=4)
-    urls = remotefiles(a.pattern, t0, t1; refresh, version)
+    urls = remotefiles(a.pattern, t0, t1; refresh, version, dir)
     isempty(urls) && _no_files(a.pattern, t0, t1; version)
     return a.reader(localize(urls; dir, update, ntasks), t0, t1)
 end
