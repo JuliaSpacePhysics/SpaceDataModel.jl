@@ -9,7 +9,8 @@ function workload()
     show(io, MIME"text/plain"(), reg)
     show(io, MIME"text/plain"(), ds["var1"])
     reg[probe="b", level="l2"]
-    foreach(_mask_workload, (Float32, Float64, Int8, Int16, Int32, UInt8, UInt16, UInt32))
+    _mask_workload(Float32); _mask_workload(Float64); _mask_workload(Int8); _mask_workload(Int16)
+    _mask_workload(Int32); _mask_workload(UInt8); _mask_workload(UInt16); _mask_workload(UInt32)
     return
 end
 
