@@ -128,7 +128,6 @@ function _mask_reshaped!(B, A, c, dims::AbstractUnitRange)
     return B
 end
 
-# `ivdep` in both kernels: `B` is `A` or does not overlap it, and each iteration reads and writes one index.
 # NaN data failing every comparison stays NaN anyway.
 @inline function _masked(::Type{F}, ::Type{C}, x, f, l, h) where {F, C}
     y = C(x)
