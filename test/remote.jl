@@ -88,6 +88,7 @@ end
     # Removing the source proves the second call served the cache rather than refetching.
     rm(joinpath(src, "f1.cdf"))
     @test localize(urls; dir=dst, update=Day(1)) == want
+    @test localize(urls[1]; dir=dst, update=fetched -> fetched < now(UTC) - Day(1)) == want[1]
     # A file the archive claimed to have is a failure, not a gap, so it must surface...
     @test_throws Exception localize(urls[1]; dir=dst, update=true)
     # ...without stranding a partial download or destroying the copy already cached.

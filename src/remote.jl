@@ -7,11 +7,8 @@ datadir() = get(ENV, "SPACE_DATA_DIR", joinpath(homedir(), ".cache", "spacedata"
     localize(url; dir=datadir(), update=false) -> String
     localize(urls; ntasks=4, kw...) -> Vector{String}
 
-Return a local path for each URL, downloading files missing from the cache.
-
-Set the `SPACE_DATA_DIR` environment variable to override the default cache directory.
-
-Set `update = true` to force re-download, or a `Period` to refetch if the local copy is older.
+`update` refetches a cached copy: `true`, a max-age `Period`,
+or a predicate on its UTC download `DateTime`.
 """
 localize(urls::AbstractVector; ntasks=4, kw...) =
     convert(Vector{String}, asyncmap(url -> localize(url; kw...), urls; ntasks))
@@ -19,6 +16,7 @@ localize(urls::AbstractVector; ntasks=4, kw...) =
 function localize(url; dir=datadir(), update=false)
     _stale(_, update::Bool) = update
     _stale(path, age::Period) = unix2datetime(mtime(path)) + age < now(UTC)
+    _stale(path, f) = f(unix2datetime(mtime(path)))::Bool
 
     path = local_path(url, dir)
     return isfile(path) && !_stale(path, update) ? path : _download_atomic(url, path)

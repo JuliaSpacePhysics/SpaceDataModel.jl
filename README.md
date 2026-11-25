@@ -80,6 +80,8 @@ urls = remotefiles(fgs, "2020-10-01", "2020-10-03")  # `version` defaults to "*"
 paths = localize(urls)                          # cached local copies
 ```
 
+Files cache under `$SPACE_DATA_DIR` (default `~/.cache/spacedata`).
+
 Placeholder syntax and cadence: docstring of `FilePattern` in [`src/filepattern.jl`](src/filepattern.jl); fetching in [`src/remote.jl`](src/remote.jl).
 
 ## References
