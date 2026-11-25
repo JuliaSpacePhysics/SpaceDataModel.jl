@@ -172,7 +172,14 @@ function _download_atomic(uri, path)
     mkpath(dir)
     return mktemp(dir) do tmp, io
         close(io)
-        Downloads.download(uri, tmp)
+        _download(uri, tmp)
         mv(tmp, path; force=true)
     end
 end
+
+_download(url, out) = retry(Downloads.download;
+    delays=ExponentialBackOff(n=2, first_delay=2), check=(_, e) -> _retryable(e))(url, out)
+
+# curl 28/52/55/56: transfer timed out or cut. Unreachable hosts aren't retried: waiting only delays the cache fallback.
+_retryable(e) = e isa Downloads.RequestError &&
+    (e.response.status in (429, 503) || iszero(e.response.status) && e.code in (28, 52, 55, 56))

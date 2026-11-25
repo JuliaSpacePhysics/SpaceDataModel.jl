@@ -97,6 +97,14 @@ end
     @test read(want[1], String) == "data1"
 end
 
+@testitem "retry policy" begin
+    using SpaceDataModel: _retryable
+    using Downloads: RequestError, Response
+    err(code, status) = RequestError("u", code, "", Response(nothing, "u", status, "", []))
+    @test _retryable(err(0, 429)) && _retryable(err(28, 0))
+    @test !_retryable(err(0, 404)) && !_retryable(err(7, 0))
+end
+
 @testitem "remotefiles" begin
     using SpaceDataModel: FilePattern, remotefiles, _LISTINGS
     using Dates
