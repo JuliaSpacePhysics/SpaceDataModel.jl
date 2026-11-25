@@ -5,8 +5,17 @@ using SHA: sha256
 datadir() = get(ENV, "SPACE_DATA_DIR", joinpath(homedir(), ".cache", "spacedata"))
 
 """
-    localize(url; dir=datadir(), update=false) -> String
-    localize(urls; ntasks=4, kw...) -> Vector{String}
+    localize(url; dir=datadir(), update=false) :: String
+    localize(urls; ntasks=4, kw...) :: Vector{String}
+    localize(fetch, path; update=false) -> path
+
+Path of a local copy of `url`, cached under `dir` and downloaded if absent.
+
+For data without a fixed URL, `fetch(file)` must write the data to `file`; the result is cached at `path`:
+
+    localize("cache/latest.csv") do file
+        Downloads.download(latest_url(), file)
+    end
 
 `update` refetches a cached copy: `true`, a max-age `Period`,
 or a predicate on its UTC download `DateTime`.
@@ -15,19 +24,21 @@ A failed refetch throws for `update = true`; otherwise it warns and returns the 
 localize(urls::AbstractVector; ntasks=4, kw...) =
     convert(Vector{String}, asyncmap(url -> localize(url; kw...), urls; ntasks))
 
-function localize(url; dir=datadir(), update=false)
+localize(url; dir=datadir(), update=false) =
+    localize(tmp -> _download(url, tmp), local_path(url, dir); update)
+
+function localize(fetch, path; update=false)
     _stale(_, update::Bool) = update
     _stale(path, age::Period) = unix2datetime(mtime(path)) + age < now(UTC)
     _stale(path, f) = f(unix2datetime(mtime(path)))::Bool
 
-    path = local_path(url, dir)
-    isfile(path) || return _download_atomic(url, path)
+    isfile(path) || return _fetch_atomic(fetch, path)
     _stale(path, update) || return path
     try
-        return _download_atomic(url, path)
+        return _fetch_atomic(fetch, path)
     catch e
-        (update === true || !(e isa Downloads.RequestError)) && rethrow()
-        @warn "Refresh failed; using the cached copy" url path exception = e maxlog = 1 _id = path
+        (update === true || e isa InterruptException) && rethrow()
+        @warn "Refresh failed; using the cached copy" path exception = e maxlog = 1 _id = path
         return path
     end
 end
@@ -179,13 +190,16 @@ _shorten(name) = ncodeunits(name) <= 255 ? name :
 
 _percent(c) = join("%" * uppercase(string(b; base=16, pad=2)) for b in codeunits(c))
 
-function _download_atomic(uri, path)
+function _fetch_atomic(fetch, path)
     dir = dirname(path)
     mkpath(dir)
-    return mktemp(dir) do tmp, io
-        close(io)
-        _download(uri, tmp)
-        mv(tmp, path; force=true)
+    tmp = tempname(dir; cleanup=false)
+    try
+        fetch(tmp)
+        isfile(tmp) || error("`fetch` wrote nothing to the file it was given")
+        return mv(tmp, path; force=true)
+    finally
+        rm(tmp; force=true)
     end
 end
 

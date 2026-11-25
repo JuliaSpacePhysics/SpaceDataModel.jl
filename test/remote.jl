@@ -95,6 +95,13 @@ end
     # ...without stranding a partial download or destroying the copy already cached.
     @test readdir(dirname(want[1])) == ["f1.cdf", "f2.cdf", "f3.cdf"]
     @test read(want[1], String) == "data1"
+
+    # `fetch` form: its output is cached at `path`; any refresh error falls back to it.
+    path = joinpath(dst, "q.csv")
+    @test localize(f -> write(f, "q1"), path) == path
+    @test read(path, String) == "q1"
+    @test (@test_logs (:warn,) localize(_ -> error(), path; update=Second(0))) == path
+    @test_throws "wrote nothing" localize(_ -> nothing, joinpath(dst, "g.csv"))
 end
 
 @testitem "retry policy" begin
