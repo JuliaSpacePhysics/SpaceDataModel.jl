@@ -89,7 +89,8 @@ end
     rm(joinpath(src, "f1.cdf"))
     @test localize(urls; dir=dst, update=Day(1)) == want
     @test localize(urls[1]; dir=dst, update=fetched -> fetched < now(UTC) - Day(1)) == want[1]
-    # A file the archive claimed to have is a failure, not a gap, so it must surface...
+    # An opportunistic refresh that fails keeps the cached copy usable (e.g. offline)
+    @test (@test_logs (:warn, r"Refresh failed") localize(urls[1]; dir=dst, update=Second(0))) == want[1]
     @test_throws Exception localize(urls[1]; dir=dst, update=true)
     # ...without stranding a partial download or destroying the copy already cached.
     @test readdir(dirname(want[1])) == ["f1.cdf", "f2.cdf", "f3.cdf"]

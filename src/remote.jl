@@ -9,6 +9,7 @@ datadir() = get(ENV, "SPACE_DATA_DIR", joinpath(homedir(), ".cache", "spacedata"
 
 `update` refetches a cached copy: `true`, a max-age `Period`,
 or a predicate on its UTC download `DateTime`.
+A failed refetch throws for `update = true`; otherwise it warns and returns the cached copy.
 """
 localize(urls::AbstractVector; ntasks=4, kw...) =
     convert(Vector{String}, asyncmap(url -> localize(url; kw...), urls; ntasks))
@@ -19,7 +20,15 @@ function localize(url; dir=datadir(), update=false)
     _stale(path, f) = f(unix2datetime(mtime(path)))::Bool
 
     path = local_path(url, dir)
-    return isfile(path) && !_stale(path, update) ? path : _download_atomic(url, path)
+    isfile(path) || return _download_atomic(url, path)
+    _stale(path, update) || return path
+    try
+        return _download_atomic(url, path)
+    catch e
+        (update === true || !(e isa Downloads.RequestError)) && rethrow()
+        @warn "Refresh failed; using the cached copy" url path exception = e maxlog = 1 _id = path
+        return path
+    end
 end
 
 """
