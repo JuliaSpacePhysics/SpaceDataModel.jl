@@ -110,6 +110,8 @@ end
     @test local_path("https://h.org/a/b.cdf", "/c") == joinpath("/c", "h.org", "a", "b.cdf")
     @test local_path("https://h.org:8080/q?t=00:00/x*", "/c") ==
           joinpath("/c", "h.org%3A8080", "q%3Ft=00%3A00%2Fx%2A")
+    long = basename(local_path("https://h.org/q?" * "a"^300, "/c"))
+    @test ncodeunits(long) <= 255 && long != basename(local_path("https://h.org/q?" * "a"^301, "/c"))
 end
 
 @testitem "remotefiles" begin

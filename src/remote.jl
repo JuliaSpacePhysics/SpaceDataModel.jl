@@ -1,5 +1,6 @@
 using Dates
 using Downloads: Downloads, request
+using SHA: sha256
 
 datadir() = get(ENV, "SPACE_DATA_DIR", joinpath(homedir(), ".cache", "spacedata"))
 
@@ -169,8 +170,12 @@ function local_path(uri, dir)
     q = something(findfirst('?', s), lastindex(s) + 1)
     path = replace(s[begin:prevind(s, q)], r"[:*\"<>|]" => _percent)
     query = replace(s[q:end], r"[^A-Za-z0-9._~=&,+-]" => _percent)
-    return joinpath(dir, split(path * query, '/'; keepempty=false)...)
+    return joinpath(dir, _shorten.(split(path * query, '/'; keepempty=false))...)
 end
+
+# File systems cap names at 255 bytes; a longer one keeps a prefix plus a hash of the whole.
+_shorten(name) = ncodeunits(name) <= 255 ? name :
+    string(name[begin:thisind(name, 200)], '~', bytes2hex(sha256(name))[1:16])
 
 _percent(c) = join("%" * uppercase(string(b; base=16, pad=2)) for b in codeunits(c))
 
