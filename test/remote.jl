@@ -105,6 +105,13 @@ end
     @test !_retryable(err(0, 404)) && !_retryable(err(7, 0))
 end
 
+@testitem "local_path" begin
+    using SpaceDataModel: local_path
+    @test local_path("https://h.org/a/b.cdf", "/c") == joinpath("/c", "h.org", "a", "b.cdf")
+    @test local_path("https://h.org:8080/q?t=00:00/x*", "/c") ==
+          joinpath("/c", "h.org%3A8080", "q%3Ft=00%3A00%2Fx%2A")
+end
+
 @testitem "remotefiles" begin
     using SpaceDataModel: FilePattern, remotefiles, _LISTINGS
     using Dates

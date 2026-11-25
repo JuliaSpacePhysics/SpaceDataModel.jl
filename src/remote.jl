@@ -160,12 +160,19 @@ end
 # Ordering on the version's integer fields so `v1.1.10` outranks `v1.1.2`.
 _numkey(v) = Int[parse(Int, m.match) for m in eachmatch(r"\d+", v)]
 
+# Percent-encode characters invalid in Windows file names (e.g. a `host:port` colon), and in the
+# query also `?` and `/`. Ordinary paths stay unchanged so existing caches remain valid.
 function local_path(uri, dir)
     s = string(uri)
     i = findfirst("//", s)
     isnothing(i) || (s = s[(last(i)+1):end])
-    return joinpath(dir, split(s, '/'; keepempty=false)...)
+    q = something(findfirst('?', s), lastindex(s) + 1)
+    path = replace(s[begin:prevind(s, q)], r"[:*\"<>|]" => _percent)
+    query = replace(s[q:end], r"[^A-Za-z0-9._~=&,+-]" => _percent)
+    return joinpath(dir, split(path * query, '/'; keepempty=false)...)
 end
+
+_percent(c) = join("%" * uppercase(string(b; base=16, pad=2)) for b in codeunits(c))
 
 function _download_atomic(uri, path)
     dir = dirname(path)
