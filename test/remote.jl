@@ -98,7 +98,7 @@ end
 
     # `fetch` form: its output is cached at `path`; any refresh error falls back to it.
     path = joinpath(dst, "q.csv")
-    @test localize(f -> write(f, "q1"), path) == path
+    @test localize(f -> write(f, "q1"), "q.csv"; dir=dst) == path
     @test read(path, String) == "q1"
     @test (@test_logs (:warn,) localize(_ -> error(), path; update=Second(0))) == path
     @test_throws "wrote nothing" localize(_ -> nothing, joinpath(dst, "g.csv"))

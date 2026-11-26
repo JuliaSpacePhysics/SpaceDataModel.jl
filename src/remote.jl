@@ -7,13 +7,14 @@ datadir() = get(ENV, "SPACE_DATA_DIR", joinpath(homedir(), ".cache", "spacedata"
 """
     localize(url; dir=datadir(), update=false) :: String
     localize(urls; ntasks=4, kw...) :: Vector{String}
-    localize(fetch, path; update=false) -> path
+    localize(fetch, path; dir=datadir(), update=false) :: String
 
 Path of a local copy of `url`, cached under `dir` and downloaded if absent.
 
-For data without a fixed URL, `fetch(file)` must write the data to `file`; the result is cached at `path`:
+For data without a fixed URL, `fetch(file)` writes the data to `file`,
+which is then cached at `joinpath(dir, path)`:
 
-    localize("cache/latest.csv") do file
+    localize("example.org/latest.csv") do file
         Downloads.download(latest_url(), file)
     end
 
@@ -25,9 +26,10 @@ localize(urls::AbstractVector; ntasks=4, kw...) =
     convert(Vector{String}, asyncmap(url -> localize(url; kw...), urls; ntasks))
 
 localize(url; dir=datadir(), update=false) =
-    localize(tmp -> _download(url, tmp), local_path(url, dir); update)
+    localize(tmp -> _download(url, tmp), local_path(url); dir, update)
 
-function localize(fetch, path; update=false)
+function localize(fetch, path; dir=datadir(), update=false)
+    path = joinpath(dir, path)
     _stale(_, update::Bool) = update
     _stale(path, age::Period) = unix2datetime(mtime(path)) + age < now(UTC)
     _stale(path, f) = f(unix2datetime(mtime(path)))::Bool
@@ -174,7 +176,7 @@ _numkey(v) = Int[parse(Int, m.match) for m in eachmatch(r"\d+", v)]
 
 # Percent-encode characters invalid in Windows file names (e.g. a `host:port` colon), and in the
 # query also `?` and `/`. Ordinary paths stay unchanged so existing caches remain valid.
-function local_path(uri, dir)
+function local_path(uri, dir="")
     s = string(uri)
     i = findfirst("//", s)
     isnothing(i) || (s = s[(last(i)+1):end])
